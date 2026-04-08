@@ -1,0 +1,2 @@
+-- multiply
+-- Lookup table based: LUT(log_a + log_b) = product

@@ -3,14 +3,21 @@
 # --------------------------------------------------------------------------
 
 # Device / family — update to match your target hardware
-set_global_assignment -name FAMILY "Cyclone V"
-set_global_assignment -name DEVICE 5CSEBA6U23I7
+set_global_assignment -name FAMILY "MAX 10 FPGA"
+set_global_assignment -name DEVICE 10M50DAF484C7G
 
 # Top-level entity
-set_global_assignment -name TOP_LEVEL_ENTITY bch_decoder
+set_global_assignment -name TOP_LEVEL_ENTITY "top_level"
 
 # VHDL source files — uncomment and update once files are created in src/
 # set_global_assignment -name VHDL_FILE ../src/bch_decoder.vhd
+set_global_assignment -name VHDL_FILE ../src/top_level.vhd
+set_global_assignment -name VHDL_FILE ../src/bch_encoder.vhd
+set_global_assignment -name VHDL_FILE ../src/primitives\gf_add.vhd
+set_global_assignment -name VHDL_FILE ../src/primitives\gf_multiply.vhd
+set_global_assignment -name VHDL_FILE ../src/arithmetic\gf_lfsr.vhd
+set_global_assignment -name VHDL_FILE ../src/arithmetic\gf_poly_eval.vhd
+
 
 # Timing constraints — uncomment and update once an .sdc file is created in synth/
 # set_global_assignment -name SDC_FILE ../synth/bch_decoder.sdc

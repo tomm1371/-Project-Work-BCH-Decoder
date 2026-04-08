@@ -1,0 +1,23 @@
+# --------------------------------------------------------------------------
+# Quartus project settings file (.qsf) template for BCH Decoder
+# --------------------------------------------------------------------------
+
+# Device / family — update to match your target hardware
+set_global_assignment -name FAMILY "Cyclone V"
+set_global_assignment -name DEVICE 5CSEBA6U23I7
+
+# Top-level entity
+set_global_assignment -name TOP_LEVEL_ENTITY bch_decoder
+
+# VHDL source files — uncomment and update once files are created in src/
+# set_global_assignment -name VHDL_FILE ../src/bch_decoder.vhd
+
+# Timing constraints — uncomment and update once an .sdc file is created in synth/
+# set_global_assignment -name SDC_FILE ../synth/bch_decoder.sdc
+
+# --------------------------------------------------------------------------
+# Pin assignments — add your board-specific assignments below
+# Example:
+# set_location_assignment PIN_V11 -to clk
+# set_location_assignment PIN_AH17 -to reset_n
+# --------------------------------------------------------------------------

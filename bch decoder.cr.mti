@@ -1,0 +1,92 @@
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/sim/bch_encoder_tb.vhd {0 {vcom -work work -2002 -explicit -stats=none C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/sim/bch_encoder_tb.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+** Error (suppressible): C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/sim/bch_encoder_tb.vhd(1): (vcom-1491) Empty source files.
+
+} {} {}} C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd {0 {vcom -work work -2002 -explicit -stats=none C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling entity bch_encoder
+-- Compiling architecture RTL of bch_encoder
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(25): near "CONSTANT": (vcom-1576) expecting ';'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(28): (vcom-1136) Unknown identifier "K".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(28): Cannot resolve expression type.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(28): Type error in range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(30): (vcom-1136) Unknown identifier "K".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(30): Cannot resolve expression type.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(30): Type error in range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(31): (vcom-1136) Unknown identifier "K".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(31): Cannot resolve expression type.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(31): Type error in range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(32): (vcom-1136) Unknown identifier "K".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(32): Cannot resolve expression type.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(32): Type error in range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(36): near "=": (vcom-1576) expecting ';'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(41): near "'": syntax error
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(51): (vcom-1581) No feasible entries for infix operator 'and'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(51): Type error resolving infix expression "and" as type std.STANDARD.BOOLEAN.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(52): Illegal target for signal assignment.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(52): (vcom-1583) Illegal type converson from 'Integer' to 'message_array' (numeric to array).
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(52): (vcom-1601) Operator "&" is ambiguous.
+   Feasible operators are:
+      (implicit) RTL."&"[STD_LOGIC_VECTOR, message_array return message_array] at C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(28)
+      (implicit) RTL."&"[STD_LOGIC_VECTOR, STD_LOGIC_VECTOR return message_array] at C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(28)
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(52): (vcom-1389) OTHERS aggregate cannot be operand of operator with unconstrained array formal.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(52): Target of signal assignment is not a signal.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): Illegal target for signal assignment.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): (vcom-1136) Unknown identifier "message_length".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): (vcom-1136) Unknown identifier "message_length".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): (vcom-1590) Bad expression in left operand of infix expression '-'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): (vcom-1591) Bad expression in left bound of range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): (vcom-1591) Bad expression in right bound of range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): Target type result_array in signal assignment is different from expression type ieee.std_logic_1164.STD_LOGIC_VECTOR.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): (vcom-1583) Illegal type converson from 'Integer' to 'result_array' (numeric to array).
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(53): Target of signal assignment is not a signal.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): Illegal target for signal assignment.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): (vcom-1136) Unknown identifier "message_length".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): (vcom-1590) Bad expression in left operand of infix expression '-'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): (vcom-1590) Bad expression in left operand of infix expression '-'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): Target type new_data_bit_array in signal assignment is different from expression type ieee.std_logic_1164.STD_ULOGIC.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): (vcom-1583) Illegal type converson from 'Integer' to 'new_data_bit_array' (numeric to array).
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): Type error resolving infix expression "-" as type std.STANDARD.NATURAL.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(54): Target of signal assignment is not a signal.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): Illegal target for signal assignment.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): (vcom-1136) Unknown identifier "message_length".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): (vcom-1136) Unknown identifier "message_length".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): (vcom-1590) Bad expression in left operand of infix expression '-'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): (vcom-1591) Bad expression in left bound of range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): (vcom-1591) Bad expression in right bound of range expression.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): (vcom-1581) No feasible entries for prefix operator 'xor'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(55): Bad right hand side (prefix expression) in signal assignment.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(58): (vcom-1581) No feasible entries for infix operator '&'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(58): (vcom-1581) No feasible entries for infix operator '&'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(58): (vcom-1590) Bad expression in operand of prefix expression 'xor'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(58): (vcom-1590) Bad expression in left operand of infix expression '&'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(58): (vcom-1590) Bad expression in right operand of infix expression '&'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(58): Type error resolving infix expression "&" as type ieee.std_logic_1164.STD_LOGIC_VECTOR.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(59): near "END": (vcom-1576) expecting ';'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(63): (vcom-1136) Unknown identifier "K".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(63): Cannot resolve expression type.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(63): Illegal sequential statement.
+** Warning: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(63): (vcom-1147) Range in parameter specification of FOR GENERATE must be static.
+** Error: (vcom-11) Could not find work.gf_mod.
+** Error (suppressible): C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(64): (vcom-1195) Cannot find expanded name "work.gf_mod".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(68): (vcom-1581) No feasible entries for infix operator '-'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(72): (vcom-1581) No feasible entries for infix operator '-'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(75): (vcom-1581) No feasible entries for infix operator '-'.
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(77): near ")": syntax error
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/bch_encoder.vhd(88): near "ARCHITECTURE": (vcom-1576) expecting PROCESS.
+
+} {8.0 28.0 31.0 68.0 69.0 70.0 71.0 76.0} {}} C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/gf/arithmetic/gf_mod.vhd {0 {vcom -work work -2002 -explicit -stats=none C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/gf/arithmetic/gf_mod.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling entity gf_mod
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/gf/arithmetic/gf_mod.vhd(20): (vcom-1136) Unknown identifier "message_pass_out".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/gf/arithmetic/gf_mod.vhd(20): Bad resolution function (STD_LOGIC) for type (error).
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/gf/arithmetic/gf_mod.vhd(20): near ":": (vcom-1576) expecting ';' or ')'.
+
+} {7.0 10.0} {}}

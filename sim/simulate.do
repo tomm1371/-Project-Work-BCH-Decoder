@@ -1,19 +1,32 @@
-# ModelSim simulation script template
-# Place in sim/ and run from the ModelSim Tcl console:
+# ModelSim simulation script for the BCH encoder project.
+# Run from the ModelSim Tcl console with:
 #   do sim/simulate.do
+
+# Resolve the project directories explicitly.
+set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
+set script_dir $project_root/sim
+
+cd $script_dir
+
+# Create a local modelsim.ini so vmap does not try to write into the
+# installation directory under C:\intelFPGA_lite.
+if {![file exists modelsim.ini]} {
+	vmap -c
+}
 
 # Create and map the work library
 vlib work
 vmap work work
 
-# Compile VHDL source files
-vcom -2008 ../src/bch_decoder.vhd
+# Compile design files
+vcom -2008 $project_root/src/gf/arithmetic/gf_mod.vhd
+vcom -2008 $project_root/src/bch_encoder.vhd
 
 # Compile testbench
-vcom -2008 ../tb/bch_decoder_tb.vhd
+vcom -2008 $script_dir/bch_encoder_tb.vhd
 
-# Start simulation (replace 'bch_decoder_tb' with your testbench entity name)
-vsim work.bch_decoder_tb
+# Start simulation
+vsim work.bch_encoder_tb
 
 # Add all signals to the wave window
 add wave -recursive *

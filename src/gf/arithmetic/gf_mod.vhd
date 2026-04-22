@@ -12,11 +12,11 @@ ENTITY gf_mod IS
         prev_result: IN STD_LOGIC_VECTOR(M * T - 1 DOWNTO 0);
         new_data_bit : IN STD_LOGIC;
         current_parity : IN STD_LOGIC;
-        message_pass_in : IN STD_LOGIC_VECTOR(2 ** M - M * T - 1 - 1 DOWNTO 0);
+        message_pass_in : IN STD_LOGIC_VECTOR(2 ** M - M * T - 1 - 1 DOWNTO 0); -- 7 bits for M=4, T=2
 
 
         result : OUT STD_LOGIC_VECTOR(M * T - 1 DOWNTO 0);
-        next_parity : OUT STD_LOGIC
+        next_parity : OUT STD_LOGIC;
         message_pass_out : OUT STD_LOGIC_VECTOR(2 ** M - M * T - 1 - 1 DOWNTO 0)
     );
 END ENTITY;
@@ -38,14 +38,15 @@ BEGIN
         IF rst = '1' THEN
             result <= (OTHERS => '0');
             next_parity <= '0';
+            message_pass_out <= (OTHERS => '0');
         ELSIF rising_edge(clk) THEN
             next_parity <= current_parity XOR new_data_bit; -- update parity bit for next round
             message_pass_out <= message_pass_in; -- pass the message bits through unchanged
             
             IF prev_result(R - 1) = '1' THEN
-                result <= (prev_result(R - 2 DOWNTO 0) & new_data_bit) XOR gen(R - 1 DOWNTO 0);
+                result <= (prev_result(R - 2 DOWNTO 0) & '0') XOR gen(R - 1 DOWNTO 0);
             ELSE
-                result <= prev_result(R - 2 DOWNTO 0) & new_data_bit;
+                result <= prev_result(R - 2 DOWNTO 0) & '0';
             END IF;
             
         END IF;

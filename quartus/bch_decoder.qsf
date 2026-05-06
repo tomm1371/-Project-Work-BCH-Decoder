@@ -13,11 +13,15 @@ set_global_assignment -name TOP_LEVEL_ENTITY "top_level"
 # set_global_assignment -name VHDL_FILE ../src/bch_decoder.vhd
 set_global_assignment -name VHDL_FILE ../src/top_level.vhd
 set_global_assignment -name VHDL_FILE ../src/bch_encoder.vhd
+set_global_assignment -name VHDL_FILE ../src/bch_encoder_256.vhd
 set_global_assignment -name VHDL_FILE ../src/primitives/gf_add.vhd
 set_global_assignment -name VHDL_FILE ../src/primitives/gf_multiply.vhd
 set_global_assignment -name VHDL_FILE ../src/arithmetic/gf_lfsr.vhd
 set_global_assignment -name VHDL_FILE ../src/arithmetic/gf_poly_eval.vhd
 set_global_assignment -name VHDL_FILE ../src/arithmetic/gf_mod.vhd
+set_global_assignment -name VHDL_FILE ../src/arithmetic/gf_mod_256.vhd
+
+set_global_assignment -name VHDL_FILE ../sim/bch_encoder_tb_256.vhd
 
 
 # Timing constraints — uncomment and update once an .sdc file is created in synth/

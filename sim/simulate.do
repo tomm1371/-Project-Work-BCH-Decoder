@@ -19,14 +19,14 @@ vlib work
 vmap work work
 
 # Compile design files
-vcom -2008 $project_root/src/gf/arithmetic/gf_mod.vhd
-vcom -2008 $project_root/src/bch_encoder.vhd
+vcom -2008 $project_root/src/gf/arithmetic/gf_mod_256.vhd
+vcom -2008 $project_root/src/bch_encoder_256.vhd
 
 # Compile testbench
-vcom -2008 $script_dir/bch_encoder_tb.vhd
+vcom -2008 $script_dir/bch_encoder_tb_256.vhd
 
 # Start simulation
-vsim work.bch_encoder_tb
+vsim work.bch_encoder_tb_256
 
 # Add all signals to the wave window
 add wave -recursive *

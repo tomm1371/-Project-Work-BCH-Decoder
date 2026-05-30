@@ -20,9 +20,7 @@ ARCHITECTURE RTL OF one_hot_encoder IS
 	BEGIN
 		IF rst = '1' THEN
 			one_hot_out <= (OTHERS => '0');
-			
-			--valid_output <= (OTHERS => '0');
-			--message_s(0) <= (OTHERS => '0');
+
 		ELSIF (rising_edge(clk)) THEN 
             for i in (0 to (2 ** M - 2)) LOOP
 

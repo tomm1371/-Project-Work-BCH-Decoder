@@ -10,10 +10,10 @@ ENTITY syndrome_calculator IS
 
 	PORT (
 		clk, rst : IN STD_LOGIC;
-		data_in : IN STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0); -- 
+		data_in : IN STD_LOGIC_VECTOR(2**M - 1 DOWNTO 0); -- 
 		data_valid : IN STD_LOGIC;
 
-		data_out : OUT STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0); -- 256 bits for M=8
+		data_out : OUT STD_LOGIC_VECTOR(2**M-1 DOWNTO 0); -- 256 bits for M=8
 		data_out_valid : OUT STD_LOGIC;
 		data_parity : OUT STD_LOGIC; -- 0 is data has even parity, 1 is uneven
 		S1,S3 : OUT STD_LOGIC_VECTOR(M-1 DOWNTO 0)
@@ -102,22 +102,23 @@ ARCHITECTURE RTL OF syndrome_calculator IS
                             );
 	-- msb          lsb
 	-- parity & S1 & S3 
-	SIGNAL xor_array8 IS ARRAY (2**8-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array7 IS ARRAY (2**7-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array6 IS ARRAY (2**6-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array5 IS ARRAY (2**5-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array4 IS ARRAY (2**4-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array3 IS ARRAY (2**3-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array2 IS ARRAY (2**2-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array1 IS ARRAY (2**1-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0) 
-		:= (OTHERS => (OTHERS => '0'));
+	TYPE t8 IS ARRAY (2**8-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	TYPE t7 IS ARRAY (2**7-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	TYPE t6 IS ARRAY (2**6-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	TYPE t5 IS ARRAY (2**5-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	TYPE t4 IS ARRAY (2**4-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	TYPE t3 IS ARRAY (2**3-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	TYPE t2 IS ARRAY (2**2-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	TYPE t1 IS ARRAY (2-1    DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
+	SIGNAL xor_array8 : t8 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array7 : t7 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array6 : t6 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array5 : t5 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array4 : t4 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array3 : t3 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array2 : t2 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array1 : t1 := (OTHERS => (OTHERS => '0'));
+	
 begin
 	--parity should have no effect on the syndrome calculation
 	xor_array8(0)(M*T -1 downto 0) <= (OTHERS => '0');
@@ -209,7 +210,7 @@ begin
 			END LOOP;
 			
 			--clk8
-			data_parity <= xor_array1(0)(M*T)   xor xor_array1(1)(M*T)
+			data_parity <= xor_array1(0)(M*T)   xor xor_array1(1)(M*T);
 			S1 <= xor_array1(0)(M*T-1 DOWNTO M) xor xor_array1(1)(M*T-1 DOWNTO M); 
 			S3 <= xor_array1(0)(M-1 DOWNTO 0)   xor xor_array1(1)(M-1 DOWNTO 0); 
 			data_out <= raw_data_array(clk_cycles)(2**M-1 downto 0);

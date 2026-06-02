@@ -15,14 +15,14 @@ def generateFile(LUTname:str, index:list[int], value:list[int], bitLengthOfIndex
     topPart = f"""
 entity {LUTname} is
 port(address  : in  std_logic_vector({bitLengthOfIndex-1} DOWNTO 0); -- memory address
-         out  : out std_logic_vector({bitLengthOfValues -1} DOWNTO 0); -- value
+    contents  : out std_logic_vector({bitLengthOfValues -1} DOWNTO 0); -- value
     clk, rst  : in  std_logic
         );
 end entity {LUTname};
 
 architecture {LUTname}_arch of {LUTname} is
 
-type LUT_type is array (0 to {len(index)-1}) of std_logic_vector({bitLengthOfValues -1} DOWNTO 0);
+type LUT_type is array (0 to {2**bitLengthOfIndex -1}) of std_logic_vector({bitLengthOfValues -1} DOWNTO 0);
 
 constant LUT : LUT_type := (\n"""
     LUTstr = ""
@@ -47,9 +47,9 @@ begin
     PROCESS (clk, rst)
     BEGIN
         IF rst = '1' THEN
-            out <= (OTHERS => '0');
+            contents <= (OTHERS => '0');
         ELSIF (rising_edge(clk)) THEN 
-            out <= LUT(to_integer(unsigned(address)));
+            contents <= LUT(to_integer(unsigned(address)));
         END IF;
     END PROCESS;
     
@@ -57,7 +57,7 @@ end architecture {LUTname}_arch;
 
 --	Component {LUTname} is
 --		port(address  : in  std_logic_vector({bitLengthOfIndex-1} DOWNTO 0); -- memory address
---				 out  : out std_logic_vector({bitLengthOfValues -1} DOWNTO 0); -- value
+--			  contents  : out std_logic_vector({bitLengthOfValues -1} DOWNTO 0); -- value
 --			clk, rst  : in  std_logic 
 --			);
 --	end Component {LUTname};
@@ -65,7 +65,7 @@ end architecture {LUTname}_arch;
 --	???_tabel_for_step? : entity {LUTname}
 --		PORT MAP(
 --			address => ???,  
---			out => ???, 
+--			contents => ???, 
 --			clk => clk, rst => rst 
 --		);
     """

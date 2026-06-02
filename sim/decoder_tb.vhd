@@ -58,7 +58,7 @@ begin
 			wait for 125ns;
 			clockTB <= not clockTB;
 			wait for 125ns;
-            data_inTB    <= x"000A0000_00000000_00000000_00000000_00000000_00000000_00000000_00000000";
+            data_inTB    <= x"00050000_00000000_00000000_00000000_00000000_00000000_00000000_00000000";
             data_validTB <= '1';
 
 			--while (not endfile(Fin)) loop

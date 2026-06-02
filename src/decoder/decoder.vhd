@@ -80,7 +80,7 @@ ARCHITECTURE RTL OF decoder IS
 	TYPE is_either_0_or_1_errors_t IS ARRAY (3 to 13) of STD_LOGIC_VECTOR(1 DOWNTO 0);
 	SIGNAL is_either_0_or_1_errors : is_either_0_or_1_errors_t := (OTHERS => (OTHERS => '1'));
 
-	TYPE messages_t IS ARRAY (0 to 16) of STD_LOGIC_VECTOR(M**2 -1 DOWNTO 0);
+	TYPE messages_t IS ARRAY (0 to 16) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
 	SIGNAL messages : messages_t  := (OTHERS => (OTHERS => '0'));
 
 	SIGNAL data_out_valid : STD_LOGIC_VECTOR(0 to 16) := (OTHERS => '0');
@@ -108,7 +108,7 @@ ARCHITECTURE RTL OF decoder IS
 
 	SIGNAL error_location1, error_location2_0, error_location2_1 : STD_LOGIC_VECTOR(M-1 DOWNTO 0) := (OTHERS => '0');
 	
-	TYPE error_vectors_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(M**2 - 2 DOWNTO 0);
+	TYPE error_vectors_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(2**M - 2 DOWNTO 0);
 	SIGNAL error_vectors : error_vectors_t;
 	TYPE find_error_vectors_of_this_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(M-1 DOWNTO 0);
 	SIGNAL find_error_vectors_of_this : find_error_vectors_of_this_t;

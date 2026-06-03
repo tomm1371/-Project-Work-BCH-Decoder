@@ -24,8 +24,8 @@ architecture decoder_tb_arch of decoder_tb is
 	);
     END Component decoder;
 
-	signal clockTB,resetTB, data_validTB : std_logic;
-	signal data_inTB                     : std_logic_vector (2**M-1 downto 0);
+	signal clockTB,resetTB, data_validTB : std_logic := '0';
+	signal data_inTB                     : std_logic_vector (2**M-1 downto 0) := (OTHERS => '0');
 
 begin
 	
@@ -50,9 +50,6 @@ begin
 	
 		begin
 			--readline(Fin, current_readLine); --ingore the first line of the file
-			clockTB <= '0';
-            data_inTB    <= (OTHERS => '0');
-			data_validTB <= '0';
 
             clockTB <= not clockTB;
 			wait for 125ns;

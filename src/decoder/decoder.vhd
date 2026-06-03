@@ -77,8 +77,14 @@ ARCHITECTURE RTL OF decoder IS
 	TYPE log_S1_array_t IS ARRAY (2 TO 11) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 	SIGNAL log_S1_array : log_S1_array_t := (OTHERS => (OTHERS => '0'));
 
-	TYPE is_either_0_or_1_errors_t IS ARRAY (3 to 13) of STD_LOGIC_VECTOR(1 DOWNTO 0);
-	SIGNAL is_either_0_or_1_errors : is_either_0_or_1_errors_t := (OTHERS => (OTHERS => '1'));
+	TYPE error_count_type is (
+		NO_ERRORS,
+		ONE_ERROR,
+		TWO_ERRORS,
+		INVALID
+	);
+	TYPE error_count_array_t IS ARRAY (3 to 13) of error_count_type;
+	SIGNAL error_count_array : error_count_array_t := (OTHERS => INVALID);
 
 	TYPE messages_t IS ARRAY (0 to 16) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
 	SIGNAL messages : messages_t  := (OTHERS => (OTHERS => '0'));
@@ -187,11 +193,12 @@ BEGIN
 			
 			messages <= (OTHERS => (OTHERS => '0'));
 			data_out_valid <= (OTHERS => '0');
+			log_A <= (OTHERS => '0');
 
 			S1_array <= (OTHERS => (OTHERS => '0'));
     		S3_array <= (OTHERS => (OTHERS => '0'));
 			log_S1_array <= (OTHERS => (OTHERS => '0'));
-			is_either_0_or_1_errors <= (OTHERS => (OTHERS => '1'));
+			error_count_array <= (OTHERS => INVALID);
 
 			--TODO most other signals
 
@@ -210,7 +217,7 @@ BEGIN
 			END LOOP;
 
 			for i in 3 TO 12 LOOP
-				is_either_0_or_1_errors(i+1) <= is_either_0_or_1_errors(i);
+				error_count_array(i+1) <= error_count_array(i);
 			END LOOP;
 
 			for i in 0 TO 10 LOOP
@@ -234,18 +241,15 @@ BEGIN
 			--step 3 ==============================
 			-- test if 0 or 1 errors to override result later
 				--since log(0) is undefined the next steps are undefined if there is 0 or 1 errors. 
-				--therefore we wait for the computation to finish before overriding what errors to flip later. 
-			IF ( S1_array(2) = x"00"  and S3_array(2) = x"00") THEN
-				is_either_0_or_1_errors(3)(0) <= '1'; --S1 = 0
+				--therefore we wait for the computation to finish before overriding what errors to flip later.
+			IF data_out_valid(2) = '0' THEN
+				error_count_array(3) <= INVALID;
+			elsif ( S1_array(2) = x"00"  and S3_array(2) = x"00") THEN
+				error_count_array(3) <= NO_ERRORS; --S1 = 0
+			elsif (step_array(2) = x"00") THEN 
+				error_count_array(3) <= ONE_ERROR;
 			else
-				is_either_0_or_1_errors(3)(0) <= '0';
-			END IF;
-
-			--S1**3 = S3 and  not S1=S3=0
-			IF ((S1_array(2) = x"00" nand S1_array(2) = x"00") and step_array(2) = x"00") THEN
-				is_either_0_or_1_errors(3)(1) <= '1'; 
-			else
-				is_either_0_or_1_errors(3)(1) <= '0';
+				error_count_array(3) <= TWO_ERRORS;
 			END IF;
 
 			  
@@ -346,29 +350,42 @@ BEGIN
 
 			error_location2_1 <= error_location2_0;
 			--one hot encoding of 
-			if (is_either_0_or_1_errors(10) = "00") then --if 2 or more errors
-				-- error_location1
+			if (error_count_array(10) = TWO_ERRORS) and (message_parity(10) = '0') then --if 2+ errors and there is an even error count
+				
 				find_error_vectors_of_this(0) <= error_location1;
-			else --there is only 1 or 0 errors
-				find_error_vectors_of_this(0) <= x"FF";
+			
+			else --there is an uneven error count or 0 
+				find_error_vectors_of_this(0) <= x"FF"; --dont flip a bit in message
 					-- x"FF"
 			end if;
 
 			--step 12 ==============================
 			--one hot of error2 and flip error1
 
-			messages(12) <= (messages(11)(2**M-1 downto 1) xor (error_vectors(0))) & messages(11)(0);
+			messages(12)(2**M-1 downto 1) <= (messages(11)(2**M-1 downto 1) xor (error_vectors(0)));
 
+			--if there is exacly 1 error and the parity of the message is even
+				--assume the parity bit is an error
+
+			--if there is no errors but the parity is wrong, 
+				--flip the parity bit
+			IF (((error_count_array(11) = ONE_ERROR) and (message_parity(11) = '0')) or ((error_count_array(11) = NO_ERRORS) and (message_parity(11) = '1'))) THEN
+				messages(12)(0) <= not messages(11)(0); --flip parity bit
+			ELSE
+				messages(12)(0) <= messages(11)(0); --pass parity bit
+			END IF;
+
+			
 			--one hot encoding of error_location 2 or S1 if step2
-			if (is_either_0_or_1_errors(11) = "00") then 
-				-- error_location2 
+			if (error_count_array(11) = TWO_ERRORS) and (message_parity(10) = '0') then --2 (or more) errors and even error count
 				find_error_vectors_of_this(1) <= error_location2_1;
-			elsif (is_either_0_or_1_errors(11) = "01") then --one error
-				-- log_S1_array(11)
+
+			elsif (error_count_array(11) = ONE_ERROR) then
 				find_error_vectors_of_this(1) <= log_S1_array(11);
+
 			else -- 0 errors 
-				find_error_vectors_of_this(1) <= x"FF";
-				-- x"FF"
+				find_error_vectors_of_this(1) <= x"FF"; --dont flip a bit in message
+				
 			end if;
 			
 			--step 13 ==============================
@@ -395,8 +412,7 @@ BEGIN
 
 END ARCHITECTURE;
 
-	-- TODO: 
-	-- TB's 
-	-- dont ignore parity (lol)
+	-- TODO:  
+	-- make it work
 	-- clean up arrays / other code
-	-- remove extra / empty steps
+	-- remove empty steps (14-16)

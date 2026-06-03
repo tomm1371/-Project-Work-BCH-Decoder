@@ -118,10 +118,19 @@ ARCHITECTURE RTL OF syndrome_calculator IS
 	SIGNAL xor_array3 : t3 := (OTHERS => (OTHERS => '0'));
 	SIGNAL xor_array2 : t2 := (OTHERS => (OTHERS => '0'));
 	SIGNAL xor_array1 : t1 := (OTHERS => (OTHERS => '0'));
+
+	SIGNAL xor_S1_0, xor_S1_1, xor_S3_0, xor_S3_1 : STD_LOGIC_VECTOR(M-1 DOWNTO 0);
+	SIGNAL parity_xor0, parity_xor1 : STD_LOGIC;
 	
 begin
 	--parity should have no effect on the syndrome calculation
 	xor_array8(0)(M*T -1 downto 0) <= (OTHERS => '0');
+	parity_xor0 <= xor_array1(0)(M*T);
+	parity_xor1 <= xor_array1(1)(M*T);
+	xor_S1_0 <= xor_array1(0)(M*T-1 DOWNTO M);
+	xor_S1_1 <= xor_array1(1)(M*T-1 DOWNTO M);
+	xor_S3_0 <= xor_array1(0)(M-1 DOWNTO 0);
+	xor_S3_1 <= xor_array1(1)(M-1 DOWNTO 0);
 
 	P1 : process(clk, rst)
 	begin
@@ -156,7 +165,7 @@ begin
 
 				--parity (xor_array(0)) is 0's 
 				for i in 1 TO (2**8)-1 LOOP 
-					IF data_in(i) then --notice how for each value of i the value is a constant or 0's
+					IF data_in(i) = '1' THEN --notice how for each value of i the value is a constant or 0's
 									   --make sure it its implemented like this, and that the tabel dosen't exist for every value....
 						xor_array8(i)(M*T -1 downto 0) <= log_a_to_a_tabel(i-1) & log_a_to_a_pow3_tabel(i-1);
 					else
@@ -210,9 +219,9 @@ begin
 			END LOOP;
 			
 			--clk8
-			data_parity <= xor_array1(0)(M*T)   xor xor_array1(1)(M*T);
-			S1 <= xor_array1(0)(M*T-1 DOWNTO M) xor xor_array1(1)(M*T-1 DOWNTO M); 
-			S3 <= xor_array1(0)(M-1 DOWNTO 0)   xor xor_array1(1)(M-1 DOWNTO 0); 
+			data_parity <= parity_xor0 xor parity_xor1;
+			S1 <= xor_S1_0 xor xor_S1_1; 
+			S3 <= xor_S3_0 xor xor_S3_1;
 			data_out <= raw_data_array(clk_cycles)(2**M-1 downto 0);
 			data_out_valid <= raw_data_array(clk_cycles)(2**M);
 

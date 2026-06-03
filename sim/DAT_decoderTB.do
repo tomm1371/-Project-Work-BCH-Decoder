@@ -20,9 +20,9 @@ vmap work work
 
 # Compile design files
 vcom -2008 $project_root/src/decoder/one_hot_encoder.vhd
-vcom -2008 $project_root/a_to_log_a_tabel.vhd
-vcom -2008 $project_root/a_to_a_pow3_tabel.vhd
-vcom -2008 $project_root/log_A_to_log_rootsOfA_tabel.vhd
+vcom -2008 $project_root/src/LUT/a_to_log_a_tabel.vhd
+vcom -2008 $project_root/src/LUT/a_to_a_pow3_tabel.vhd
+vcom -2008 $project_root/src/LUT/log_A_to_log_rootsOfA_tabel.vhd
 vcom -2008 $project_root/src/decoder/syndrome_calculator.vhd
 vcom -2008 $project_root/src/decoder/decoder.vhd
 
@@ -36,4 +36,4 @@ vsim work.decoder_tb
 add wave -recursive *
 
 # Run simulation
-run -all
+run 5000ns

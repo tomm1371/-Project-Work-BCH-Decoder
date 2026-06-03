@@ -58,7 +58,7 @@ BEGIN
         rst <= '1';
         WAIT FOR 20 ns;
         rst <= '0';
-        WAIT FOR 20 ns;
+        WAIT FOR 30 ns;
 
         -- Apply test vector 1
         data_in <= (0 => '1', OTHERS => '0'); -- Example input data (239 bits)

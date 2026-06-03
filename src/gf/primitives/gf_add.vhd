@@ -1,2 +1,0 @@
--- add
--- XOR of two GF elements

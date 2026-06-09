@@ -21,7 +21,8 @@ architecture decoder_tb_arch of decoder_tb is
 		data_in : IN STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0);
 		data_valid : IN STD_LOGIC;
 		code_out : OUT STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0);
-		code_valid : OUT STD_LOGIC
+		code_valid : OUT STD_LOGIC;
+		errors_found : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
 	);
     END Component decoder;
 
@@ -36,7 +37,8 @@ begin
 		data_in       => data_inTB,
 		data_valid	  => data_validTB,			
 		code_out  => open,
-		code_valid  => open
+		code_valid  => open,
+		errors_found => open
 		);
 													
 	STIMULUS : process
@@ -80,6 +82,12 @@ begin
 
 			data_inTB <= x"00000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
 
+			clockTB <= not clockTB;
+			wait for half_a_clk;
+			clockTB <= not clockTB;
+			wait for half_a_clk;
+
+			data_inTB <= x"00000000_00070000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
 
 			--while (not endfile(Fin)) loop
             

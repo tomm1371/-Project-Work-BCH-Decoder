@@ -13,7 +13,8 @@ ENTITY decoder IS
 		data_in : IN STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0);
 		data_valid : IN STD_LOGIC;
 		code_out : OUT STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0);
-		code_valid : OUT STD_LOGIC
+		code_valid : OUT STD_LOGIC;
+		errors_found : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
 	);
 END ENTITY;
 
@@ -85,7 +86,7 @@ ARCHITECTURE RTL OF decoder IS
 		TWO_ERRORS,
 		INVALID
 	);
-	TYPE error_count_array_t IS ARRAY (3 to 13) of error_count_type;
+	TYPE error_count_array_t IS ARRAY (3 to 16) of error_count_type;
 	SIGNAL error_count_array : error_count_array_t := (OTHERS => INVALID);
 
 	TYPE messages_t IS ARRAY (1 to 16) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
@@ -194,14 +195,16 @@ BEGIN
 			code_out <= (OTHERS => '0');
 			code_valid <= '0';
 			
-			messages <= (OTHERS => (OTHERS => '0'));
-			data_out_valid(1 TO 16) <= (OTHERS => '0');
+			message_parity <= (OTHERS => '0');
+			data_out_valid <= (OTHERS => '0');
 			log_A <= (OTHERS => '0');
 
 			S1_array <= (OTHERS => (OTHERS => '0'));
     		S3_array <= (OTHERS => (OTHERS => '0'));
 			log_S1_array <= (OTHERS => (OTHERS => '0'));
 			error_count_array <= (OTHERS => INVALID);
+			messages <= (OTHERS => (OTHERS => '0'));
+			errors_found <= "00";
 
 			--TODO most other signals
 
@@ -222,7 +225,7 @@ BEGIN
 			END LOOP;
 			log_S1_array(3) <= log_S1_array2;
 
-			for i in 3 TO 12 LOOP
+			for i in 3 TO 15 LOOP
 				error_count_array(i+1) <= error_count_array(i);
 			END LOOP;
 			messages(1) <= messages0;
@@ -417,6 +420,21 @@ BEGIN
 			--step 17 ==============================
 			code_out <= messages(16);
 			code_valid <= data_out_valid(16);
+			if (error_count_array(16) = NO_ERRORS and message_parity(16) = '0') then
+				errors_found <= "00";
+			elsif ((error_count_array(16) = NO_ERRORS and message_parity(16) = '1') or 
+				   (error_count_array(16) = ONE_ERROR and message_parity(16) = '1')) then
+
+				errors_found <= "01";
+			elsif ((error_count_array(16) = ONE_ERROR and message_parity(16) = '0') or 
+				   (error_count_array(16) = TWO_ERRORS and message_parity(16) = '0')) then
+				errors_found <= "10";
+			else 
+				errors_found <= "11";
+			end if;
+				
+				
+
 				
 		END IF;
 	END PROCESS;
@@ -424,6 +442,5 @@ BEGIN
 END ARCHITECTURE;
 
 	-- TODO:  
-	-- make it work
 	-- clean up arrays / other code
 	-- remove empty steps (14-16)

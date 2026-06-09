@@ -61,24 +61,27 @@ BEGIN
     stimulus_process : PROCESS
         variable line_in : line;
         variable vec : std_logic_vector(238 DOWNTO 0);
+        variable rom_init_complete : boolean := false;
     BEGIN
         -- Reset the UUT
-        rst <= '1';
-        WAIT FOR CLK_PERIOD * 2;
-        rst <= '0';
-        WAIT FOR CLK_PERIOD * 2;
+        if (not rom_init_complete) then
+            rst <= '1';
+            WAIT FOR CLK_PERIOD * 2;
+            rst <= '0';
+            WAIT FOR CLK_PERIOD * 2;
 
-
-        readline(input_file, line_in); -- ignore the first line (header)
-        while not endfile(input_file) loop
-            readline(input_file, line_in);            
-            read(line_in, vec);
-            data_valid <= '1';
-            data_in <= vec;
-            WAIT FOR CLK_PERIOD;
+            rom_init_complete := true;
+            readline(input_file, line_in); -- ignore the first line (header)
+            while not endfile(input_file) loop
+                readline(input_file, line_in);            
+                read(line_in, vec);
+                data_valid <= '1';
+                data_in <= vec;
+                WAIT FOR CLK_PERIOD;
+            end loop;
             data_valid <= '0';
-            WAIT FOR CLK_PERIOD;
-        end loop;
+        end if;
+    WAIT;
     END PROCESS;
 
     capture_output : PROCESS

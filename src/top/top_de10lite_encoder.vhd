@@ -10,7 +10,7 @@ ENTITY top_de10lite_encoder IS
 END ENTITY top_de10lite_encoder;
 
 ARCHITECTURE rtl OF top_de10lite_encoder IS
-    SIGNAL data_in : STD_LOGIC_VECTOR(239 - 1 DOWNTO 0) := (0 => '1', OTHERS => '0'); -- 239 bits, initialize with 1 followed by 238 zeros for testing
+    SIGNAL data_in : STD_LOGIC_VECTOR(239 - 1 DOWNTO 0) := (238 => '1', OTHERS => '0'); -- 239 bits, initialize with 1 followed by 238 zeros for testing
     SIGNAL data_valid : STD_LOGIC := '0';
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0) := (OTHERS => '0');
     SIGNAL code_valid : STD_LOGIC := '0';

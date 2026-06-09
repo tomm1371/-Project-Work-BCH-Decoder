@@ -121,7 +121,7 @@ ARCHITECTURE RTL OF syndrome_calculator IS
 	
 begin
 	--parity should have no effect on the syndrome calculation
-	xor_array8(0)(M*T -1 downto 0) <= (OTHERS => '0');
+	--xor_array8(0)(M*T -1 downto 0) <= (OTHERS => '0');
 
 	P1 : process(clk, rst)
 	begin

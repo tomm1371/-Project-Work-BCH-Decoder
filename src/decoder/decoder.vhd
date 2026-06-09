@@ -75,8 +75,9 @@ ARCHITECTURE RTL OF decoder IS
     SIGNAL S3_array : S3_array_t     := (OTHERS => (OTHERS => '0'));
 	SIGNAL S1_array0, S3_array0 : STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 
-	TYPE log_S1_array_t IS ARRAY (2 TO 11) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
+	TYPE log_S1_array_t IS ARRAY (3 TO 11) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 	SIGNAL log_S1_array : log_S1_array_t := (OTHERS => (OTHERS => '0'));
+	SIGNAL log_S1_array2 : STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 
 	TYPE error_count_type is (
 		NO_ERRORS,
@@ -138,7 +139,7 @@ BEGIN
 	log_tabel_for_step2 : entity work.a_to_log_a_tabel
 		PORT MAP(
 			address => S1_array(1),  
-			contents => log_S1_array(2), 
+			contents => log_S1_array2, 
 			clk => clk, rst => rst 
 		);
 
@@ -216,9 +217,10 @@ BEGIN
 			END LOOP;
 			S3_array(1) <= S3_array0;
 
-			for i in 2 TO 10 LOOP
+			for i in 3 TO 10 LOOP
 				log_S1_array(i+1) <= log_S1_array(i);
 			END LOOP;
+			log_S1_array(3) <= log_S1_array2;
 
 			for i in 3 TO 12 LOOP
 				error_count_array(i+1) <= error_count_array(i);
@@ -241,7 +243,7 @@ BEGIN
 			-- S1**3 xor S3
 
             step_array(2) <= (step_array(1) xor S3_array(1));
-			--log_S1_array(2) <= a_to_log_a_tabel(S1_array(1))
+			--log_S1_array2 <= a_to_log_a_tabel(S1_array(1))
 
 			--step 3 ==============================
 			-- test if 0 or 1 errors to override result later
@@ -259,7 +261,7 @@ BEGIN
 
 			  
 			
-			minus_log_S1 <= std_logic_vector(unsigned(not ('0' & log_S1_array(2))) + 1);
+			minus_log_S1 <= std_logic_vector(unsigned(not ('0' & log_S1_array2)) + 1);
 			--step_array(3) <= a_to_log_a_tabel(step_array(2));
 
 			--step 4 ==============================
@@ -365,9 +367,8 @@ BEGIN
 			end if;
 
 			--step 12 ==============================
-			--one hot of error2 and flip error1
-
-			messages(12)(2**M-1 downto 1) <= (messages(11)(2**M-1 downto 1) xor (error_vectors(0)));
+			--one hot of error2 and flip parity if relevant
+			
 
 			--if there is exacly 1 error and the parity of the message is even
 				--assume the parity bit is an error
@@ -379,10 +380,12 @@ BEGIN
 			ELSE
 				messages(12)(0) <= messages(11)(0); --pass parity bit
 			END IF;
+			--pass the rest of the message along
+			messages(12)(2**M-1 downto 1) <= messages(11)(2**M-1 downto 1);
 
 			
 			--one hot encoding of error_location 2 or S1 if step2
-			if (error_count_array(11) = TWO_ERRORS) and (message_parity(10) = '0') then --2 (or more) errors and even error count
+			if (error_count_array(11) = TWO_ERRORS) and (message_parity(11) = '0') then --2 (or more) errors and even error count
 				find_error_vectors_of_this(1) <= error_location2_1;
 
 			elsif (error_count_array(11) = ONE_ERROR) then
@@ -394,12 +397,15 @@ BEGIN
 			end if;
 			
 			--step 13 ==============================
-			--flip error2
-			messages(13) <= (messages(12)(2**M-1 downto 1) xor (error_vectors(1))) & messages(12)(0);
+			--flip error1			
+			messages(13) <= (messages(12)(2**M-1 downto 1) xor (error_vectors(0))) & messages(12)(0);
+
+			
 			
 				
 			--step 14 ==============================
-			messages(14) <= messages(13);
+			--flip error2
+			messages(14) <= (messages(13)(2**M-1 downto 1) xor (error_vectors(1))) & messages(13)(0);
 				
 
 

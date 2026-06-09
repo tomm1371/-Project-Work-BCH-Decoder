@@ -50,12 +50,20 @@ begin
 	
 		begin
 			--readline(Fin, current_readLine); --ingore the first line of the file
+			resetTB <= '1';
+			clockTB <= not clockTB;
+			wait for 125 ns;
+			clockTB <= not clockTB;
+			wait for 125 ns;
+			resetTB <= '0';
 
             clockTB <= not clockTB;
-			wait for 125ns;
+			wait for 125 ns;
 			clockTB <= not clockTB;
-			wait for 125ns;
-            data_inTB    <= x"00050000_00000000_00000000_00000000_00000000_00000000_00000000_00000000";
+			wait for 125 ns;
+            --data_inTB    <= x"00050000_00000000_00000000_00000000_00000000_00000000_00000000_00000000";
+			--data_inTB    <= x"80000000_00000000_00000000_00000000_00000000_00000000_00000000_00016F62";
+			data_inTB    <=   x"00000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
             data_validTB <= '1';
 
 			--while (not endfile(Fin)) loop
@@ -100,16 +108,16 @@ begin
 				
 			--end loop;
             clockTB <= not clockTB;
-			wait for 125ns;
+			wait for 125 ns;
 			clockTB <= not clockTB;
-			wait for 125ns;
+			wait for 125 ns;
 
             data_inTB    <= (OTHERS => '0');
 			data_validTB <= '0';
 
             while true loop
                 clockTB <= not clockTB;
-				wait for 125ns;
+				wait for 125 ns;
             end loop;
 			--write(current_writeLine, string'("TEST OK/GOD = "));
 			--writeline(current_writeLine, cksum_ok_cntTB)

@@ -69,10 +69,11 @@ ARCHITECTURE RTL OF decoder IS
 	--=====================================================
 
 	--all these arrays just pass values to the next step, after they are initialised
-	TYPE S1_array_t IS ARRAY (0 TO 10) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
-	TYPE S3_array_t IS ARRAY (0 TO 10) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
+	TYPE S1_array_t IS ARRAY (1 TO 10) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
+	TYPE S3_array_t IS ARRAY (1 TO 10) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
     SIGNAL S1_array : S1_array_t     := (OTHERS => (OTHERS => '0'));
     SIGNAL S3_array : S3_array_t     := (OTHERS => (OTHERS => '0'));
+	SIGNAL S1_array0, S3_array0 : STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 
 	TYPE log_S1_array_t IS ARRAY (2 TO 11) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 	SIGNAL log_S1_array : log_S1_array_t := (OTHERS => (OTHERS => '0'));
@@ -86,11 +87,12 @@ ARCHITECTURE RTL OF decoder IS
 	TYPE error_count_array_t IS ARRAY (3 to 13) of error_count_type;
 	SIGNAL error_count_array : error_count_array_t := (OTHERS => INVALID);
 
-	TYPE messages_t IS ARRAY (0 to 16) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
+	TYPE messages_t IS ARRAY (1 to 16) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
 	SIGNAL messages : messages_t  := (OTHERS => (OTHERS => '0'));
-
-	SIGNAL data_out_valid : STD_LOGIC_VECTOR(0 to 16) := (OTHERS => '0');
-	SIGNAL message_parity : STD_LOGIC_VECTOR(0 to 16) := (OTHERS => '0');
+	SIGNAL messages0 : STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
+	SIGNAL data_out_valid : STD_LOGIC_VECTOR(1 to 16) := (OTHERS => '0');
+	SIGNAL message_parity : STD_LOGIC_VECTOR(1 to 16) := (OTHERS => '0');
+	SIGNAL data_out_valid0, message_parity0 : STD_LOGIC; 
 
 	--a collection of 8 bit vectors where step_array(i+1) is the result of a calculation using step_array(i)
 	TYPE step_array_t IS ARRAY (1 TO 4) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
@@ -117,7 +119,7 @@ ARCHITECTURE RTL OF decoder IS
 	TYPE error_vectors_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(2**M - 2 DOWNTO 0);
 	SIGNAL error_vectors : error_vectors_t;
 	TYPE find_error_vectors_of_this_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(M-1 DOWNTO 0);
-	SIGNAL find_error_vectors_of_this : find_error_vectors_of_this_t;
+	SIGNAL find_error_vectors_of_this : find_error_vectors_of_this_t := (OTHERS => (OTHERS => '1'));
 
 BEGIN
 	--=======================================================
@@ -128,7 +130,7 @@ BEGIN
 
 	pow3_tabel_for_step1 : entity work.a_to_a_pow3_tabel
 		PORT MAP(
-			address => S1_array(0),  
+			address => S1_array0,  
 			contents => step_array(1), 
 			clk => clk, rst => rst 
 		);
@@ -163,11 +165,11 @@ BEGIN
 			data_in => data_in,
 			data_valid => data_valid,
 
-			S1 => S1_array(0),
-			S3 => S3_array(0),
-			data_out => messages(0),
-			data_out_valid => data_out_valid(0),
-			data_parity => message_parity(0)
+			S1 => S1_array0,
+			S3 => S3_array0,
+			data_out => messages0,
+			data_out_valid => data_out_valid0,
+			data_parity => message_parity0
 		);
 
 	one_hot_error_finders : FOR i IN 0 TO 1 GENERATE
@@ -192,7 +194,7 @@ BEGIN
 			code_valid <= '0';
 			
 			messages <= (OTHERS => (OTHERS => '0'));
-			data_out_valid <= (OTHERS => '0');
+			data_out_valid(1 TO 16) <= (OTHERS => '0');
 			log_A <= (OTHERS => '0');
 
 			S1_array <= (OTHERS => (OTHERS => '0'));
@@ -204,13 +206,15 @@ BEGIN
 
 		ELSIF (rising_edge(clk)) THEN 
 			
-			for i in 0 TO 9 LOOP
+			for i in 1 TO 9 LOOP
 				S1_array(i + 1) <= S1_array(i);
 			END LOOP;
+			S1_array(1) <= S1_array0;
 
-            for i in 0 TO 9 LOOP
+            for i in 1 TO 9 LOOP
 				S3_array(i + 1) <= S3_array(i);
 			END LOOP;
+			S3_array(1) <= S3_array0;
 
 			for i in 2 TO 10 LOOP
 				log_S1_array(i+1) <= log_S1_array(i);
@@ -219,13 +223,14 @@ BEGIN
 			for i in 3 TO 12 LOOP
 				error_count_array(i+1) <= error_count_array(i);
 			END LOOP;
-
-			for i in 0 TO 10 LOOP
+			messages(1) <= messages0;
+			for i in 1 TO 10 LOOP
 				messages(i+1) <= messages(i);
 			END LOOP;
-
-			data_out_valid(1 to 16) <= data_out_valid(0 to 15);
-			message_parity(1 to 16) <= message_parity(0 to 15);
+			data_out_valid(1) <= data_out_valid0;
+			message_parity(1) <= message_parity0;
+			data_out_valid(2 to 16) <= data_out_valid(1 to 15);
+			message_parity(2 to 16) <= message_parity(1 to 15);
  			
 			--step 1 ==============================
 			--find S1**3 

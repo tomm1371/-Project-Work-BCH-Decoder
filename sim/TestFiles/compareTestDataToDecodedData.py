@@ -7,7 +7,7 @@ testData.readline() # skip first line
 #line = fileR.readline()
 print("Testing begins")
 lineTest = testData.readline().strip()
-lineDeco = decoderOut.readline.strip()
+lineDeco = decoderOut.readline().strip()
 i = 1
 while lineTest != "" and lineDeco != "":
     if lineTest != lineDeco:

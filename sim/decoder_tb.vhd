@@ -13,6 +13,7 @@ end entity decoder_tb;
 architecture decoder_tb_arch of decoder_tb is
     constant M : INTEGER := 8; -- 2**m = length
     constant T : INTEGER := 2; -- error correction capability
+	constant half_a_clk : TIME := 25 ns;
 
     Component decoder IS
 	PORT (
@@ -52,19 +53,33 @@ begin
 			--readline(Fin, current_readLine); --ingore the first line of the file
 			resetTB <= '1';
 			clockTB <= not clockTB;
-			wait for 125 ns;
+			wait for half_a_clk;
 			clockTB <= not clockTB;
-			wait for 125 ns;
+			wait for half_a_clk;
 			resetTB <= '0';
 
             clockTB <= not clockTB;
-			wait for 125 ns;
+			wait for half_a_clk;
 			clockTB <= not clockTB;
-			wait for 125 ns;
+			wait for half_a_clk;
             --data_inTB    <= x"00050000_00000000_00000000_00000000_00000000_00000000_00000000_00000000";
-			--data_inTB    <= x"80000000_00000000_00000000_00000000_00000000_00000000_00000000_00016F62";
-			data_inTB    <=   x"00000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
+			--data_inTB    <= x"80000000_00000000_00000000_00000000_00000000_00000000_00000000_00016F63";
+			data_inTB    <=   x"A0000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
             data_validTB <= '1';
+
+			clockTB <= not clockTB;
+			wait for half_a_clk;
+			clockTB <= not clockTB;
+			wait for half_a_clk;
+			data_inTB <= x"80000000_00000000_00010000_00000000_00000000_00000000_00000000_00016F63";
+			
+			clockTB <= not clockTB;
+			wait for half_a_clk;
+			clockTB <= not clockTB;
+			wait for half_a_clk;
+
+			data_inTB <= x"00000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
+
 
 			--while (not endfile(Fin)) loop
             
@@ -77,9 +92,9 @@ begin
 				--data_validTB <= readField1;
 				
 				--clockTB <= not clockTB;
-				--wait for 125ns;
+				--wait for half_a_clk ns;
 				--clockTB <= not clockTB;
-				--wait for 125ns;
+				--wait for half_a_clk ns;
 
 				
 				--write(current_writeLine, string'("Test with INPUT: Up="));
@@ -108,16 +123,16 @@ begin
 				
 			--end loop;
             clockTB <= not clockTB;
-			wait for 125 ns;
+			wait for half_a_clk;
 			clockTB <= not clockTB;
-			wait for 125 ns;
+			wait for half_a_clk;
 
             data_inTB    <= (OTHERS => '0');
 			data_validTB <= '0';
 
             while true loop
                 clockTB <= not clockTB;
-				wait for 125 ns;
+				wait for half_a_clk;
             end loop;
 			--write(current_writeLine, string'("TEST OK/GOD = "));
 			--writeline(current_writeLine, cksum_ok_cntTB)

@@ -2,4 +2,5 @@ QUARTUS_VERSION = "21.1"
 DATE = "2024/01/01 00:00:00"
 
 # Revisions
-PROJECT_REVISION = "bch_decoder"
+# Change this to match top TOP_LEVEL_ENTITY
+PROJECT_REVISION = "bch_de10lite_encoder"

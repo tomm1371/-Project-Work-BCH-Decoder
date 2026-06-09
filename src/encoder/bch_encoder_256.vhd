@@ -72,7 +72,7 @@ BEGIN
 			IF data_valid = '1' THEN
 				message_s(0) <= data_in & (R - 1 DOWNTO 0 => '0'); -- append 16 zeros for the systematic division dividend
 				result_s(0) <= data_in(message_length - 1 DOWNTO message_length - R); -- seed remainder with the top 16 message bits
-				parity_s(0) <= xor_reduce(data_in(message_length -1 DOWNTO message_length - R))
+				parity_s(0) <= xor_reduce(data_in(message_length -1 DOWNTO message_length - R));
 				valid_output(1) <= '1';
 			ELSE
 				valid_output(1) <= '0';

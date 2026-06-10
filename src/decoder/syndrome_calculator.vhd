@@ -120,8 +120,7 @@ ARCHITECTURE RTL OF syndrome_calculator IS
 	SIGNAL xor_array1 : t1 := (OTHERS => (OTHERS => '0'));
 	
 begin
-	--parity should have no effect on the syndrome calculation
-	--xor_array8(0)(M*T -1 downto 0) <= (OTHERS => '0');
+
 
 	P1 : process(clk, rst)
 	begin
@@ -145,6 +144,8 @@ begin
 
 		ELSIF (rising_edge(clk)) THEN 
 			-- clk 0
+			--parity should have no effect on the syndrome calculation
+			xor_array8(0)(M*T -1 downto 0) <= (OTHERS => '0');
 			raw_data_array(1)(2**M) <= data_valid;
 			IF data_valid = '1' THEN
 				raw_data_array(1)(2**M-1 downto 0) <= data_in; -- store the input message bits into the first element of the message array

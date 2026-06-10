@@ -1,8 +1,12 @@
+import pathlib
 M=8
 t=2 #number of errors to correct
 #g = int("10011", 2)
 genPoly = int("10110111101100011", 2)
 g = int("100011101",2)
+
+
+
 #genPoly = int('111010001', 2) #the generator polynomial
 
 #signal rom_out : std_logic_vector({M-1} DOWNTO 0);
@@ -70,7 +74,7 @@ end architecture {LUTname}_arch;
 --		);
     """
     totalString = header + topPart + LUTstr + end
-    file = open(LUTname+".vhd", 'w')
+    file = open(pathlib.Path("src", "LUT", LUTname+".vhd"), 'w')
     file.write(totalString)
     file.close()
     return 
@@ -113,10 +117,10 @@ def expGF2(a,b,mod):
         sum = modGF2(mult(sum,a), mod)
     return sum
     
-def logTabelWithZero(exponent = 1, lengthMultiplier =  1):
+def logTabelWithZero(exponent = 1, lengthMultiplier =  1, lengthAdder = 0):
     tabel = [0]
     a=2
-    for i in range(((2**M)-2)*lengthMultiplier):
+    for i in range(((2**M)-1)*lengthMultiplier + lengthAdder):
         tabel.append(expGF2(a,i*exponent,g)) 
     return tabel 
 

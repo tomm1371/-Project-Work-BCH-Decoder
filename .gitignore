@@ -27,6 +27,7 @@ transcript
 vsim.wlf
 *.vcd
 *.wlf
+wlft*
 
 # Misc
 *.log

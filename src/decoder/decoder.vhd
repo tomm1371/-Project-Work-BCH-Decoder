@@ -337,7 +337,7 @@ BEGIN
 			-- is the same as
 			--(error_l1(M) = '1' xor error_l1(M-1 downto 0) = x"FF")
 			
-			IF (error_l1(M) = '1' xor error_l1(M-1 downto 0) = x"FF") then -- ensure under 255, if over or equal, subtract 255
+			IF ((error_l1(M) = '1') xor error_l1(M-1 downto 0) = x"FF") then -- ensure under 255, if over or equal, subtract 255
 				error_location1 <= std_logic_vector(unsigned(error_l1(M-1 downto 0))+1); --x"01" = (not 255)+1 = -255 
 			else
 				error_location1 <= error_l1(M-1 downto 0);

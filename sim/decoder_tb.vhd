@@ -187,7 +187,7 @@ BEGIN
     BEGIN
         WAIT UNTIL RISING_EDGE(clockTB);
         if code_validTB = '1' then
-            write(output_line, code_outTB(255 DOWNTO 17));
+            write(output_line, code_outTB(255 DOWNTO 0));
             writeline(output_file, output_line);
         end if;
     END PROCESS;

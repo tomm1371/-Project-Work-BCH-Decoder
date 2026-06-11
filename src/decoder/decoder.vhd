@@ -249,7 +249,7 @@ BEGIN
 			--log_S1_array2 <= a_to_log_a_tabel(S1_array(1))
 
 			--step 3 ==============================
-			-- test if 0 or 1 errors to override result later
+			-- test if 0 or 1 errors to override result later (excluding parity)
 				--since log(0) is undefined the next steps are undefined if there is 0 or 1 errors. 
 				--therefore we wait for the computation to finish before overriding what errors to flip later.
 			IF data_out_valid(2) = '0' THEN
@@ -339,13 +339,15 @@ BEGIN
 			
 			IF ((error_l1(M) = '1') xor error_l1(M-1 downto 0) = x"FF") then -- ensure under 255, if over or equal, subtract 255
 				error_location1 <= std_logic_vector(unsigned(error_l1(M-1 downto 0))+1); --x"01" = (not 255)+1 = -255 
+				--error_location1 <= std_logic_vector(unsigned(error_l1(M-1 downto 0)));
 			else
 				error_location1 <= error_l1(M-1 downto 0);
 			end IF;
 
-			IF ((error_l1(M) = '1') xor (error_l1(M-1 downto 0) = x"FF")) then -- ensure under 255, if over or equal, subtract 255
+			IF ((error_l2(M) = '1') xor (error_l2(M-1 downto 0) = x"FF")) then -- ensure under 255, if over or equal, subtract 255
 				--error_location2_0 <= std_lo error_l2(M-1 downto 0)+x"01"; --x"01" = (not 255)+1 = -255 
 				error_location2_0 <= std_logic_vector(unsigned(error_l2(M-1 downto 0))+1);
+				--error_location2_0 <= std_logic_vector(unsigned(error_l2(M-1 downto 0)));
 			else
 				error_location2_0 <= error_l2(M-1 downto 0); 
 			end IF;
@@ -373,7 +375,7 @@ BEGIN
 			--one hot of error2 and flip parity if relevant
 			
 
-			--if there is exacly 1 error and the parity of the message is even
+			--if there is exactly 1 error and the parity of the message is even
 				--assume the parity bit is an error
 
 			--if there is no errors but the parity is wrong, 
@@ -391,7 +393,7 @@ BEGIN
 			if (error_count_array(11) = TWO_ERRORS) and (message_parity(11) = '0') then --2 (or more) errors and even error count
 				find_error_vectors_of_this(1) <= error_location2_1;
 
-			elsif (error_count_array(11) = ONE_ERROR) then
+			elsif (error_count_array(11) = ONE_ERROR) then --the parity is ignored here since 
 				find_error_vectors_of_this(1) <= log_S1_array(11);
 
 			else -- 0 errors 

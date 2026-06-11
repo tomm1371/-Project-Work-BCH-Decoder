@@ -142,16 +142,16 @@ def tabelOverA(GFtabel, poly = g, justRoots = False):
             
             if sum == 0: #is root
                 yStr = bin(y)[2:]#string of 0's & 1's
-                rootList.append("0"*(poly.bit_length()-1-len(yStr))+yStr) #add leading 0's so length is always correct
+                rootList.append(yStr.zfill(M)) #add leading 0's so length is always correct
         
         #print(rootList)
         if justRoots: 
             tabelOverA_.append(rootList)      
         else:
             if len(rootList) == 2: 
-                tabelOverA_.append(rootList[0]+rootList[1])
+                tabelOverA_.append((rootList[0]+rootList[1]).zfill(M*t))
             else:
-                tabelOverA_.append("0")
+                tabelOverA_.append("0"*M*t)
             
     if justRoots:
         return tabelOverA_  
@@ -169,13 +169,30 @@ def justRootsToLogRoots(tabelOverA_):
     for i in tabelOverA_:
         if len(i) == 2:
             returnTabel.append(int(
-                bin(lT.index(int(i[0],2)))[2:]+
-                bin(lT.index(int(i[1],2)))[2:]
+                (bin(lT.index(int(i[0],2)))[2:]).zfill(8)+
+                (bin(lT.index(int(i[1],2)))[2:]).zfill(8)
                 ,2))
         else:
             returnTabel.append(int("FFFF",16))
     
     return returnTabel
+
+#for sanity checking
+def rootReformatter(rootList):
+    retunList = []
+    lT = logTabel()
+    for pair in rootList:
+        if len(pair) != 2 :
+            retunList.append(pair)
+            continue
+        r1, r2 = lT.index(int(pair[0], 2)), lT.index(int(pair[1], 2))
+        diff = abs(r1-r2)
+        retunList.append((min(r1,r2), diff))
+    return retunList
+
+def printLines(iterable):
+    for index in iterable:
+        print(index)
         
 
 #used for finding log_A and errors
@@ -191,4 +208,4 @@ generateFile("log_a_to_a_tabel", range((2**M)-1), logTabel(),  entriesPerLine=8)
 generateFile("log_a_to_a_pow3_tabel", range((2**M)-1), logTabel(exponent=3), entriesPerLine=8)   
 
 #print(logTabel())
-#print(tabelOverA(logTabel(), g))
+printLines(tabelOverA(logTabel(), g, justRoots=True))

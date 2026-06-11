@@ -28,3 +28,4 @@ print(str(incorrect) + " errors, which is roughly "+ str(round((incorrect/(i-1))
 
 testData.close()
 decoderOut.close()
+errorFile.close()

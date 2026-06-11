@@ -18,6 +18,7 @@ def write_it_down(codeword, error_list):
     fileErrorPos.write(endOfLine)
     for e in error_list:
         fileErrorPos.write(hex(e)[2:].zfill(2) + " ")
+        codeword = codeword ^ (1<<e)
     fileW.write(endOfLine+hex(codeword)[2:].zfill(64))
     
 
@@ -31,7 +32,6 @@ def randomErrors():
                 errorLocation = random.randint(0,255)
                 if errorPos.count(errorLocation)== 0 :
                     errorPos.append(errorLocation)
-                    codeword = codeword ^ (2**errorLocation)
                     break
         write_it_down(codeword, errorPos)
         line = fileR.readline().strip()
@@ -46,14 +46,29 @@ def systematicError():
         epos = [i+1, 1] #+4 => 2 lines wrong
         epos[0] = epos[0]%256
         epos[1] = epos[1]%256
-        codeword = codeword ^ (2**(epos[0]%256) + 2**(epos[1]%256))
         
         write_it_down(codeword, epos)
         i += 1
         line = fileR.readline().strip()
     
-randomErrors()
+def allTheCorrectableErrors():
+    codeword = int(fileR.readline().strip(), 2)
+    
+    #the no error pattern 
+    write_it_down(codeword, [])
+    
+    #all the error patterns with a single error
+    for i in range(256):
+        write_it_down(codeword, [i])
+    
+    #all the unique error patterns with 2 errors
+    for i in range(256):
+        for j in range(i+1, 256):
+            write_it_down(codeword, [i,j])
+            
+allTheCorrectableErrors()
 
+print("done")
 fileR.close()
 fileW.close()
 fileErrorPos.close()

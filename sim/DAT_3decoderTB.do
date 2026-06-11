@@ -35,15 +35,14 @@ vcom -2008 $project_root/src/decoder/syndrome_calculator.vhd
 vcom -2008 $project_root/src/decoder/decoder.vhd
 
 # Compile testbench
-vcom -2008 $script_dir/decoder_tb.vhd
+vcom -2008 $script_dir/decoder_tb_3errors.vhd
 
 # Start simulation
-vsim work.decoder_tb
+vsim work.decoder_tb_3errors
 
-# Add all signals to the wave window
-add wave -recursive *
+# dont add wave signal's due to the unreasonable RAM usage
+# add wave -recursive *
 
 # Run simulation
-run 1326000 ns
-
-# call_python {$project_root}
+#run 1 ms
+run 85 ms

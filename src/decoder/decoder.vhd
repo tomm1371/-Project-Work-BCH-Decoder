@@ -200,7 +200,7 @@ BEGIN
 			log_A <= (OTHERS => '0');
 
 			S1_array <= (OTHERS => (OTHERS => '0'));
-    		S3_array <= (OTHERS => (OTHERS => '0'));
+			S3_array <= (OTHERS => (OTHERS => '0'));
 			log_S1_array <= (OTHERS => (OTHERS => '0'));
 			error_count_array <= (OTHERS => INVALID);
 			messages <= (OTHERS => (OTHERS => '0'));

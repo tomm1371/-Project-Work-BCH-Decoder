@@ -35,7 +35,7 @@ ARCHITECTURE decoder_tb_arch OF decoder_tb IS
 	--SIGNAL errors_foundTB : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
 	--file input_file : TEXT open READ_MODE is "TestFiles/encoderOutput.txt";
-	file input_file : TEXT open READ_MODE is "TestFiles/codes_with_errors.txt";
+	file input_file : TEXT open READ_MODE is "TestFiles/encodedParrotErrors.txt";
     file output_file : TEXT open WRITE_MODE is "TestFiles/decoderOutput.txt";
 
 BEGIN
@@ -73,7 +73,7 @@ BEGIN
 			readline(input_file, line_in); 
 			next when line_in'length = 0;           
 			--read(line_in, vec);
-			hread(line_in, vec);
+			read(line_in, vec);
 			data_validTB <= '1';
 			data_inTB <= vec;
 			WAIT FOR CLK_PERIOD;
@@ -180,7 +180,7 @@ BEGIN
     BEGIN
         WAIT UNTIL RISING_EDGE(clockTB);
         if code_validTB = '1' then
-            hwrite(output_line, code_outTB(255 DOWNTO 0));
+            write(output_line, code_outTB(255 DOWNTO 0));
             writeline(output_file, output_line);
         end if;
     END PROCESS;

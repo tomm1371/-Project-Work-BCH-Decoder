@@ -70,8 +70,8 @@ ARCHITECTURE RTL OF decoder IS
 	--=====================================================
 
 	--all these arrays just pass values to the next step, after they are initialised
-	TYPE S1_array_t IS ARRAY (1 TO 10) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
-	TYPE S3_array_t IS ARRAY (1 TO 10) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
+	TYPE S1_array_t IS ARRAY (1 TO 2) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
+	TYPE S3_array_t IS ARRAY (1 TO 2) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
     SIGNAL S1_array : S1_array_t     := (OTHERS => (OTHERS => '0'));
     SIGNAL S3_array : S3_array_t     := (OTHERS => (OTHERS => '0'));
 	SIGNAL S1_array0, S3_array0 : STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
@@ -86,14 +86,14 @@ ARCHITECTURE RTL OF decoder IS
 		TWO_ERRORS,
 		INVALID
 	);
-	TYPE error_count_array_t IS ARRAY (3 to 16) of error_count_type;
+	TYPE error_count_array_t IS ARRAY (3 to 14) of error_count_type;
 	SIGNAL error_count_array : error_count_array_t := (OTHERS => INVALID);
 
-	TYPE messages_t IS ARRAY (1 to 16) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
+	TYPE messages_t IS ARRAY (1 to 14) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
 	SIGNAL messages : messages_t  := (OTHERS => (OTHERS => '0'));
 	SIGNAL messages0 : STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
-	SIGNAL data_out_valid : STD_LOGIC_VECTOR(1 to 16) := (OTHERS => '0');
-	SIGNAL message_parity : STD_LOGIC_VECTOR(1 to 16) := (OTHERS => '0');
+	SIGNAL data_out_valid : STD_LOGIC_VECTOR(1 to 14) := (OTHERS => '0');
+	SIGNAL message_parity : STD_LOGIC_VECTOR(1 to 14) := (OTHERS => '0');
 	SIGNAL data_out_valid0, message_parity0 : STD_LOGIC; 
 
 	--a collection of 8 bit vectors where step_array(i+1) is the result of a calculation using step_array(i)
@@ -210,12 +210,12 @@ BEGIN
 
 		ELSIF (rising_edge(clk)) THEN 
 			
-			for i in 1 TO 9 LOOP
+			for i in 1 TO 1 LOOP
 				S1_array(i + 1) <= S1_array(i);
 			END LOOP;
 			S1_array(1) <= S1_array0;
 
-            for i in 1 TO 9 LOOP
+            for i in 1 TO 1 LOOP
 				S3_array(i + 1) <= S3_array(i);
 			END LOOP;
 			S3_array(1) <= S3_array0;
@@ -225,7 +225,7 @@ BEGIN
 			END LOOP;
 			log_S1_array(3) <= log_S1_array2;
 
-			for i in 3 TO 15 LOOP
+			for i in 3 TO 13 LOOP
 				error_count_array(i+1) <= error_count_array(i);
 			END LOOP;
 			messages(1) <= messages0;
@@ -234,8 +234,8 @@ BEGIN
 			END LOOP;
 			data_out_valid(1) <= data_out_valid0;
 			message_parity(1) <= message_parity0;
-			data_out_valid(2 to 16) <= data_out_valid(1 to 15);
-			message_parity(2 to 16) <= message_parity(1 to 15);
+			data_out_valid(2 to 14) <= data_out_valid(1 to 13);
+			message_parity(2 to 14) <= message_parity(1 to 13);
  			
 			--step 1 ==============================
 			--find S1**3 
@@ -312,8 +312,8 @@ BEGIN
 			--find roots from tabel
 
 			--log_roots = log_A_to_log_roots(log_A)
-				--root1 = roots(15 downto 8);
-				--root2 = roots( 7 downto 0);
+				--root1 = log_roots(15 downto 8);
+				--root2 = log_roots( 7 downto 0);
 
 			--step 9 ==============================
 			--mult potential tabel entries with S1 (add log_S1)
@@ -406,33 +406,25 @@ BEGIN
 			messages(13) <= (messages(12)(2**M-1 downto 1) xor (error_vectors(0))) & messages(12)(0);
 
 			
-			
-				
 			--step 14 ==============================
 			--flip error2
 			messages(14) <= (messages(13)(2**M-1 downto 1) xor (error_vectors(1))) & messages(13)(0);
-				
-
 
 			--step 15 ==============================
-			messages(15) <= messages(14);
+			--output the corrected message and the errors found
+			code_out <= messages(14);
+			code_valid <= data_out_valid(14);
+			if (error_count_array(14) = NO_ERRORS and message_parity(14) = '0') then
+				errors_found <= "00"; --0
+			elsif ((error_count_array(14) = NO_ERRORS and message_parity(14) = '1') or 
+				   (error_count_array(14) = ONE_ERROR and message_parity(14) = '1')) then
 
-			--step 16 ==============================
-			messages(16) <= messages(15);
-			--step 17 ==============================
-			code_out <= messages(16);
-			code_valid <= data_out_valid(16);
-			if (error_count_array(16) = NO_ERRORS and message_parity(16) = '0') then
-				errors_found <= "00";
-			elsif ((error_count_array(16) = NO_ERRORS and message_parity(16) = '1') or 
-				   (error_count_array(16) = ONE_ERROR and message_parity(16) = '1')) then
-
-				errors_found <= "01";
-			elsif ((error_count_array(16) = ONE_ERROR and message_parity(16) = '0') or 
-				   (error_count_array(16) = TWO_ERRORS and message_parity(16) = '0')) then
-				errors_found <= "10";
+				errors_found <= "01"; --1
+			elsif ((error_count_array(14) = ONE_ERROR and message_parity(14) = '0') or 
+				   (error_count_array(14) = TWO_ERRORS and message_parity(14) = '0')) then
+				errors_found <= "10"; --2
 			else 
-				errors_found <= "11";
+				errors_found <= "11"; --3 or more
 			end if;
 				
 				

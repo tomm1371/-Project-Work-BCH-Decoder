@@ -1,21 +1,34 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+USE work.codeword_file_pkg.ALL;
 
 ENTITY top_de10lite_decoder IS
     PORT (
         MAX10_CLK1_50  : IN STD_LOGIC; -- connect to board clock
         KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0); -- rst and start(data_valid)
-        HEX0, HEX1, HEX2, HEX3, HEX4, HEX5 : OUT STD_LOGIC_VECTOR(7 DOWNTO 0) -- display codeword
+        HEX0, HEX1, HEX2, HEX3, HEX4, HEX5 : OUT STD_LOGIC_VECTOR(7 DOWNTO 0); -- display codeword
+        LEDR : OUT STD_LOGIC_VECTOR(9 DOWNTO 0) -- error visualization, each bit represents an error type (no error, 1 error, 2 errors, 3 errors)
     );
 END ENTITY top_de10lite_decoder;
 
 ARCHITECTURE rtl OF top_de10lite_decoder IS
-    SIGNAL data_in : STD_LOGIC_VECTOR(255 DOWNTO 0) := (x"00000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC1"); -- 256 bits, initialize with all zeros for testing
+    SIGNAL data_in : STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0) := (OTHERS => '0');
     SIGNAL data_valid : STD_LOGIC := '0';
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0) := (OTHERS => '0');
     SIGNAL code_valid : STD_LOGIC := '0';
     SIGNAL errors_found : STD_LOGIC_VECTOR(1 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL reader_done : STD_LOGIC := '0';
+    SIGNAL key1_sync_0 : STD_LOGIC := '1';
+    SIGNAL key1_sync_1 : STD_LOGIC := '1';
+    SIGNAL reader_start : STD_LOGIC := '0';
 
+    -- signals for counting error types and visualization
+    SIGNAL total_decoded : std_logic_vector(7 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL no_error_count : std_logic_vector(7 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL one_error_count : std_logic_vector(7 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL two_error_count : std_logic_vector(7 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL three_error_count : std_logic_vector(7 DOWNTO 0) := (OTHERS => '0');
 
     -- map hex to 7-seg for visualization
     FUNCTION hex_to_7seg(hex : STD_LOGIC_VECTOR(3 DOWNTO 0)) RETURN STD_LOGIC_VECTOR IS
@@ -43,6 +56,39 @@ ARCHITECTURE rtl OF top_de10lite_decoder IS
         RETURN seg;
     END FUNCTION;
 BEGIN
+    -- Instantiate the codeword stream reader to read codewords from ROM
+    -- Reads codewords from a ROM initialized with "bch_decoder_codewords.mif" and outputs them sequentially when start is triggered
+    reader_inst : ENTITY work.codeword_stream_reader
+        GENERIC MAP (
+            DATA_WIDTH => CODEWORD_WIDTH,
+            ROM_DEPTH => CODEWORD_COUNT,
+            ROM_ADDR_WIDTH => CODEWORD_ADDR_WIDTH
+        )
+        PORT MAP(
+            clk => MAX10_CLK1_50,
+            rst => NOT KEY(0),
+            start => reader_start,
+            data_out => data_in,
+            data_valid => data_valid,
+            done => reader_done
+        );
+
+    -- Synchronize the KEY1 release so the reader starts once per button release.
+    PROCESS (MAX10_CLK1_50, KEY(0))
+    BEGIN
+        IF KEY(0) = '0' THEN
+            key1_sync_0 <= '1';
+            key1_sync_1 <= '1';
+            reader_start <= '0';
+        ELSIF rising_edge(MAX10_CLK1_50) THEN
+            key1_sync_0 <= KEY(1);
+            key1_sync_1 <= key1_sync_0;
+            reader_start <= key1_sync_0 AND NOT key1_sync_1;
+        END IF;
+    END PROCESS;
+
+
+    -- Instantiate the decoder to decode the codewords read from ROM
     decoder_inst : entity work.decoder
         GENERIC MAP (
             M => 8,
@@ -52,28 +98,51 @@ BEGIN
             clk => MAX10_CLK1_50,
             rst => NOT KEY(0),
             data_in => data_in,
-            data_valid => NOT KEY(1),
+            data_valid => data_valid,
             code_out => code_out,
             code_valid => code_valid,
             errors_found => errors_found
         );
 
+    -- Process to count error types and update HEX displays for visualization
     PROCESS (MAX10_CLK1_50, KEY(0))
     BEGIN
         IF KEY(0) = '0' THEN
+        -- reset counts and displays when reset is pressed
             HEX0 <= (OTHERS => '1');
             HEX1 <= (OTHERS => '1');
             HEX2 <= (OTHERS => '1');
             HEX3 <= (OTHERS => '1');
             HEX4 <= (OTHERS => '1');
             HEX5 <= (OTHERS => '1');
-        ELSIF (code_valid = '1' and rising_edge(MAX10_CLK1_50)) THEN
-            HEX0 <= hex_to_7seg(code_out(3 DOWNTO 0));
-            HEX1 <= hex_to_7seg(code_out(7 DOWNTO 4));
-            HEX2 <= hex_to_7seg(code_out(11 DOWNTO 8));
-            HEX3 <= hex_to_7seg(code_out(15 DOWNTO 12));
-            HEX4 <= hex_to_7seg(code_out(19 DOWNTO 16));
-            HEX5 <= hex_to_7seg("00" & errors_found);
+            total_decoded <= (OTHERS => '0');
+            no_error_count <= (OTHERS => '0');
+            one_error_count <= (OTHERS => '0');
+            two_error_count <= (OTHERS => '0');
+            three_error_count <= (OTHERS => '0');
+        ELSIF rising_edge(MAX10_CLK1_50) THEN
+        -- 
+            IF code_valid = '1' THEN
+                total_decoded <= std_logic_vector(unsigned(total_decoded) + 1);
+                IF errors_found = "00" THEN
+                    no_error_count <= std_logic_vector(unsigned(no_error_count) + 1);
+                ELSIF errors_found = "01" THEN
+                    one_error_count <= std_logic_vector(unsigned(one_error_count) + 1);
+                ELSIF errors_found = "10" THEN
+                    two_error_count <= std_logic_vector(unsigned(two_error_count) + 1);
+                ELSIF errors_found = "11" THEN
+                    three_error_count <= std_logic_vector(unsigned(three_error_count) + 1);
+                END IF;
+            END IF;
+
+            HEX0 <= hex_to_7seg(two_error_count(3 DOWNTO 0));
+            HEX1 <= hex_to_7seg(two_error_count(7 DOWNTO 4));
+            HEX2 <= hex_to_7seg(one_error_count(3 DOWNTO 0));
+            HEX3 <= hex_to_7seg(one_error_count(7 DOWNTO 4));
+            HEX4 <= hex_to_7seg(no_error_count(3 DOWNTO 0));
+            HEX5 <= hex_to_7seg(no_error_count(7 DOWNTO 4));
+            LEDR(7 DOWNTO 0) <= three_error_count; -- visualize 3 error count on LEDs
+            LEDR(9 DOWNTO 8) <= "00";
         END IF;
     END PROCESS;
 END ARCHITECTURE;

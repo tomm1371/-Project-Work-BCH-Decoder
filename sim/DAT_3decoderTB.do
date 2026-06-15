@@ -3,8 +3,8 @@
 #   do sim/DAT_decoderTB.do
 
 # Resolve the project directories explicitly.
-set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
-# set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
+# set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
+set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
 set script_dir $project_root/sim
 
 cd $script_dir
@@ -35,15 +35,14 @@ vcom -2008 $project_root/src/decoder/syndrome_calculator.vhd
 vcom -2008 $project_root/src/decoder/decoder.vhd
 
 # Compile testbench
-vcom -2008 $script_dir/decoder_tb.vhd
+vcom -2008 $script_dir/decoder_tb_3errors.vhd
 
 # Start simulation
-vsim work.decoder_tb
+vsim work.decoder_tb_3errors
 
-# Add all signals to the wave window
-add wave -recursive *
+# dont add wave signal's due to the unreasonable RAM usage
+# add wave -recursive *
 
 # Run simulation
-run 64000 ns
-
-# call_python {$project_root}
+#run 1 ms
+run 85 ms

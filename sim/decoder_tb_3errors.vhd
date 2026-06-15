@@ -9,10 +9,10 @@ USE ieee.std_logic_textio.ALL;
 LIBRARY STD;
 USE STD.textio.ALL;
 
-ENTITY decoder_tb IS
-END ENTITY decoder_tb;
+ENTITY decoder_tb_3errors IS
+END ENTITY decoder_tb_3errors;
 
-ARCHITECTURE decoder_tb_arch OF decoder_tb IS
+ARCHITECTURE decoder_tb_3errors_arch OF decoder_tb_3errors IS
 	CONSTANT M : INTEGER := 8; -- 2**m = length
 	CONSTANT T : INTEGER := 2; -- error correction capability
 	CONSTANT CLK_PERIOD : TIME := 20 ns;
@@ -32,10 +32,11 @@ ARCHITECTURE decoder_tb_arch OF decoder_tb IS
 	SIGNAL data_inTB : STD_LOGIC_VECTOR (2 ** M - 1 DOWNTO 0) := (OTHERS => '0');
 	SIGNAL code_outTB : STD_LOGIC_VECTOR (2 ** M - 1 DOWNTO 0);
 	SIGNAL code_validTB : STD_LOGIC;
+	SIGNAL errors_foundTB : STD_LOGIC_VECTOR (1 DOWNTO 0);
 	--SIGNAL errors_foundTB : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
 	--file input_file : TEXT open READ_MODE is "TestFiles/encoderOutput.txt";
-	file input_file : TEXT open READ_MODE is "TestFiles/encodedParrotErrors.txt";
+	
     file output_file : TEXT open WRITE_MODE is "TestFiles/decoderOutput.txt";
 
 BEGIN
@@ -47,7 +48,7 @@ BEGIN
 		data_valid => data_validTB,
 		code_out => code_outTB,
 		code_valid => code_validTB,
-		errors_found => OPEN
+		errors_found => errors_foundTB
 	);
 	clk_process : PROCESS
 	BEGIN
@@ -60,7 +61,8 @@ BEGIN
 	STIMULUS : PROCESS
 
 		VARIABLE line_in : line;
-		VARIABLE vec : STD_LOGIC_VECTOR(255 DOWNTO 0);
+		VARIABLE vec : STD_LOGIC_VECTOR(255 DOWNTO 0) := x"5b09a12ca21cb76711873db80ff4faf355575e6acacebbb26c08063a0190bb29" ;
+		VARIABLE eVec1, eVec2, eVec3 : STD_LOGIC_VECTOR(259 DOWNTO 0) := (OTHERS => '0');
 
 	BEGIN
 
@@ -69,53 +71,31 @@ BEGIN
 		resetTB <= '0';
 		WAIT FOR CLK_PERIOD * 2;
 
-		while not endfile(input_file) loop
-			readline(input_file, line_in); 
-			next when line_in'length = 0;           
-			--read(line_in, vec);
-			read(line_in, vec);
-			data_validTB <= '1';
-			data_inTB <= vec;
-			WAIT FOR CLK_PERIOD;
+		data_validTB <= '1';
+		eVec1 := x"000000000_00000000_00000000_00000000_00000000_00000000_00000000_00000001";
+		while (eVec1(256) = '0') loop
+			eVec2 := eVec1(258 downto 0) & '0' ;
+
+			while (eVec2(256) = '0') loop
+				eVec3 := eVec2(258 downto 0) & '0' ;
+
+				while (eVec3(256) = '0') loop
+					data_inTB <= vec xor eVec1(255 downto 0) xor eVec2(255 downto 0) xor eVec3(255 downto 0);
+					WAIT FOR CLK_PERIOD;
+			
+					eVec3 := eVec3(258 downto 0) & '0';
+				end LOOP;
+
+				eVec2 := eVec2(258 downto 0) & '0';
+			end LOOP;
+		
+			eVec1 := eVec1(258 downto 0) & '0';
 		end loop;
+		data_inTB <= (OTHERS => '0');
 		data_validTB <= '0';
 	wait;
 		--readline(Fin, current_readLine); --ingore the first line of the file
-		/* resetTB <= '1';
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					resetTB <= '0';
 		
-		            clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		            9
-					10
-					data_inTB    <=   x"A0000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
-		            data_validTB <= '1';
-		
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					data_inTB <= x"80000000_00000000_00010000_00000000_00000000_00000000_00000000_00016F63";
-					
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		
-					data_inTB <= x"00000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
-		
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		
-					data_inTB <= x"00000000_00070000_00000000_00000000_00000000_00000000_00000000_0002DEC7"; */
 
 		--while (not endfile(Fin)) loop
 
@@ -156,22 +136,6 @@ BEGIN
 		--writeline(Fout, current_writeLine);
 
 		--end loop;
-		/* clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		
-		            data_inTB    <= (OTHERS => '0');
-					data_validTB <= '0';
-		
-		            while true loop
-		                clockTB <= not clockTB;
-						wait for half_a_clk;
-		--data_inTB    <= x"00050000_00000000_00000000_00000000_00000000_00000000_00000000_00000000";0
-		--write(current_writeLine, string'("TEST OK/GOD = "));
-		--writeline(current_writeLine, cksum_ok_cntTB)
-		--write(current_writeLine, string'("TEST KO/BAD ="));
-		--writeline(current_writeLine, cksum_ko_cntTB)*/
 
 	END PROCESS;
 	
@@ -179,9 +143,14 @@ BEGIN
         variable output_line : line;
     BEGIN
         WAIT UNTIL RISING_EDGE(clockTB);
+		
+
         if code_validTB = '1' then
-            write(output_line, code_outTB(255 DOWNTO 0));
-            writeline(output_file, output_line);
+			if errors_foundTB /= "11" then 
+            	hwrite(output_line, code_outTB(255 DOWNTO 0));
+
+            	writeline(output_file, output_line);
+			end if;
         end if;
     END PROCESS;
-END ARCHITECTURE decoder_tb_arch;
+END ARCHITECTURE decoder_tb_3errors_arch;

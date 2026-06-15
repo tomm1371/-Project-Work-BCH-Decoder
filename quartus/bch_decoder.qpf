@@ -28,5 +28,5 @@ DATE = "14:41:23  June 09, 2026"
 
 # Revisions
 
-PROJECT_REVISION = "bch_de10lite_decoder"
 PROJECT_REVISION = "bch_de10lite_encoder"
+PROJECT_REVISION = "bch_de10lite_decoder"

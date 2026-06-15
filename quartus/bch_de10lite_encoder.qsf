@@ -9,6 +9,9 @@ set_global_assignment -name TOP_LEVEL_ENTITY "top_de10lite_encoder"
 set_global_assignment -name VHDL_FILE ../src/top/top_de10lite_encoder.vhd
 set_global_assignment -name VHDL_FILE ../src/encoder/bch_encoder_256.vhd
 set_global_assignment -name VHDL_FILE ../src/encoder/gf_mod_256.vhd
+set_global_assignment -name VHDL_FILE ../src/top/codeword_file_pkg.vhd
+set_global_assignment -name VHDL_FILE ../src/top/codeword_stream_reader.vhd
+
 
 # Add any other shared sources your build needs
 set_global_assignment -name VHDL_FILE ../src/encoder/BCH_HW.vhd

@@ -1,5 +1,5 @@
 # Usage
-# python tools/txt_to_mif.py sim/TestFiles/*file to read from*.txt --out-dir quartus --name bch_decoder_codewords
+# python tools/txt_to_rom.py sim/TestFiles/*file to read from*.txt --out-dir quartus --name bch_decoder_codewords
 """Convert a text file of bitstrings into Quartus-friendly ROM assets.
 
 The input is expected to contain one codeword per line using either:

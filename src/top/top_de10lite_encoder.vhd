@@ -1,5 +1,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+USE work.codeword_file_pkg.ALL;
 
 ENTITY top_de10lite_encoder IS
     PORT (
@@ -10,10 +12,17 @@ ENTITY top_de10lite_encoder IS
 END ENTITY top_de10lite_encoder;
 
 ARCHITECTURE rtl OF top_de10lite_encoder IS
-    SIGNAL data_in : STD_LOGIC_VECTOR(239 - 1 DOWNTO 0) := (238 => '1', OTHERS => '0'); -- 239 bits, initialize with 1 followed by 238 zeros for testing
+    SIGNAL data_in : STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0) := (OTHERS => '0'); -- 239 bits, initialize with 1 followed by 238 zeros for testing
     SIGNAL data_valid : STD_LOGIC := '0';
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0) := (OTHERS => '0');
     SIGNAL code_valid : STD_LOGIC := '0';
+    
+    SIGNAL reader_done : STD_LOGIC := '0';
+    SIGNAL key1_sync_0 : STD_LOGIC := '1';
+    SIGNAL key1_sync_1 : STD_LOGIC := '1';
+    SIGNAL reader_start : STD_LOGIC := '0';
+    SIGNAL total_encoded : std_logic_vector(7 DOWNTO 0) := (OTHERS => '0');
+
 
     -- map hex to 7-seg for visualization
     FUNCTION hex_to_7seg(hex : STD_LOGIC_VECTOR(3 DOWNTO 0)) RETURN STD_LOGIC_VECTOR IS
@@ -42,13 +51,41 @@ ARCHITECTURE rtl OF top_de10lite_encoder IS
     END FUNCTION;
 
 BEGIN
+    reader_inst : ENTITY work.codeword_stream_reader
+        GENERIC MAP (
+            DATA_WIDTH => CODEWORD_WIDTH,
+            ROM_DEPTH => CODEWORD_COUNT,
+            ROM_ADDR_WIDTH => CODEWORD_ADDR_WIDTH
+        )
+        PORT MAP(
+            clk => MAX10_CLK1_50,
+            rst => NOT KEY(0),
+            start => reader_start,
+            data_out => data_in,
+            data_valid => data_valid,
+            done => reader_done
+        );
+    
+    PROCESS (MAX10_CLK1_50, KEY(0))
+    BEGIN
+        IF KEY(0) = '0' THEN
+            key1_sync_0 <= '1';
+            key1_sync_1 <= '1';
+            reader_start <= '0';
+        ELSIF rising_edge(MAX10_CLK1_50) THEN
+            key1_sync_0 <= KEY(1);
+            key1_sync_1 <= key1_sync_0;
+            reader_start <= key1_sync_0 AND NOT key1_sync_1;
+        END IF;
+    END PROCESS;
+
     -- Instantiate the existing encoder
     encoder_inst : ENTITY work.bch_encoder_256
         PORT MAP(
             clk => MAX10_CLK1_50,
             rst => NOT KEY(0),
             data_in => data_in,
-            data_valid => NOT KEY(1),
+            data_valid => data_valid,
             code_out => code_out,
             code_valid => code_valid
         );
@@ -64,13 +101,18 @@ BEGIN
             HEX3 <= (OTHERS => '1');
             HEX4 <= (OTHERS => '1');
             HEX5 <= (OTHERS => '1');
-        ELSIF (code_valid = '1' AND rising_edge(MAX10_CLK1_50)) THEN
+            total_encoded <= (OTHERS => '0');
+        ELSIF(rising_edge(MAX10_CLK1_50)) THEN
+        
+            IF code_valid = '1' THEN
+                total_encoded <= std_logic_vector(unsigned(total_encoded) + 1);
+            END IF;
             HEX0 <= hex_to_7seg(code_out(3 DOWNTO 0));
             HEX1 <= hex_to_7seg(code_out(7 DOWNTO 4));
             HEX2 <= hex_to_7seg(code_out(11 DOWNTO 8));
             HEX3 <= hex_to_7seg(code_out(15 DOWNTO 12));
-            HEX4 <= hex_to_7seg(code_out(19 DOWNTO 16));
-            HEX5 <= hex_to_7seg(code_out(23 DOWNTO 20));
+            HEX4 <= hex_to_7seg(total_encoded(3 DOWNTO 0));
+            HEX5 <= hex_to_7seg(total_encoded(7 DOWNTO 4));
         END IF;
     END PROCESS;
 

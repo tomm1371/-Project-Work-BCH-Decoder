@@ -146,3 +146,12 @@ BEGIN
         END IF;
     END PROCESS;
 END ARCHITECTURE;
+
+
+--component pll
+--	PORT
+--	(
+--		inclk0		: IN STD_LOGIC  := '0';
+--		c0		: OUT STD_LOGIC 
+--	);
+--end component;

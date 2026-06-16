@@ -29,7 +29,7 @@ ARCHITECTURE Behavioral OF bch_encoder_tb_256 IS
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0);
     SIGNAL code_valid : STD_LOGIC;
 
-    file input_file : TEXT open READ_MODE is "TestFiles/ParrotPadded.txt";
+    file input_file : TEXT open READ_MODE is "TestFiles/testData.txt";
     file output_file : TEXT open WRITE_MODE is "TestFiles/encoderOutput.txt";
 
     constant CLK_PERIOD : TIME := 20 ns;
@@ -68,7 +68,7 @@ BEGIN
             rst <= '1';
             WAIT FOR CLK_PERIOD * 2;
             rst <= '0';
-            WAIT FOR CLK_PERIOD * 2;
+            WAIT FOR CLK_PERIOD * 2.5;
 
             rom_init_complete := true;
             --readline(input_file, line_in); -- ignore the first line (header)

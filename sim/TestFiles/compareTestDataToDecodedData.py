@@ -2,7 +2,7 @@ import pathlib
 
 
 testData = open(pathlib.Path("sim","TestFiles","encoderOutput.txt"), "r")
-decoderOut = open(pathlib.Path("sim","TestFiles","decoderOutput.txt"), "r")
+decoderOut = open(pathlib.Path("sim","TestFiles","encoderOutputcopy.txt"), "r")
 errorFile = open(pathlib.Path("sim","TestFiles","error_pos.txt"), "r")
 #testData.readline() # skip first line
 lineE = errorFile.readline()

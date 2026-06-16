@@ -68,6 +68,7 @@ ARCHITECTURE RTL OF decoder IS
 	--=====================================================
 	----------------------| SIGNALS |----------------------
 	--=====================================================
+	Constant FINAL_ARRAY_INDEX : INTEGER  := 12;
 
 	--all these arrays just pass values to the next step, after they are initialised
 	TYPE S1_array_t IS ARRAY (1 TO 2) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
@@ -86,14 +87,14 @@ ARCHITECTURE RTL OF decoder IS
 		TWO_ERRORS,
 		INVALID
 	);
-	TYPE error_count_array_t IS ARRAY (3 to 14) of error_count_type;
+	TYPE error_count_array_t IS ARRAY (3 to FINAL_ARRAY_INDEX) of error_count_type;
 	SIGNAL error_count_array : error_count_array_t := (OTHERS => INVALID);
 
-	TYPE messages_t IS ARRAY (1 to 14) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
+	TYPE messages_t IS ARRAY (1 to FINAL_ARRAY_INDEX) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
 	SIGNAL messages : messages_t  := (OTHERS => (OTHERS => '0'));
 	SIGNAL messages0 : STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
-	SIGNAL data_out_valid : STD_LOGIC_VECTOR(1 to 14) := (OTHERS => '0');
-	SIGNAL message_parity : STD_LOGIC_VECTOR(1 to 14) := (OTHERS => '0');
+	SIGNAL data_out_valid : STD_LOGIC_VECTOR(1 to FINAL_ARRAY_INDEX) := (OTHERS => '0');
+	SIGNAL message_parity : STD_LOGIC_VECTOR(1 to FINAL_ARRAY_INDEX) := (OTHERS => '0');
 	SIGNAL data_out_valid0, message_parity0 : STD_LOGIC; 
 
 	--a collection of 8 bit vectors where step_array(i+1) is the result of a calculation using step_array(i)
@@ -116,7 +117,7 @@ ARCHITECTURE RTL OF decoder IS
 		--get back to length 8 by adding -255 (if >= 255)
 	SIGNAL error_l1, error_l2 : STD_LOGIC_VECTOR(M DOWNTO 0) := (OTHERS => '0');
 
-	SIGNAL error_location1, error_location2_0, error_location2_1 : STD_LOGIC_VECTOR(M-1 DOWNTO 0) := (OTHERS => '0');
+	SIGNAL error_location1, error_location2 : STD_LOGIC_VECTOR(M-1 DOWNTO 0) := (OTHERS => '0');
 	
 	TYPE error_vectors_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(2**M - 2 DOWNTO 0);
 	SIGNAL error_vectors : error_vectors_t;
@@ -225,7 +226,7 @@ BEGIN
 			END LOOP;
 			log_S1_array(3) <= log_S1_array2;
 
-			for i in 3 TO 13 LOOP
+			for i in 3 TO FINAL_ARRAY_INDEX-1 LOOP
 				error_count_array(i+1) <= error_count_array(i);
 			END LOOP;
 			messages(1) <= messages0;
@@ -234,8 +235,8 @@ BEGIN
 			END LOOP;
 			data_out_valid(1) <= data_out_valid0;
 			message_parity(1) <= message_parity0;
-			data_out_valid(2 to 14) <= data_out_valid(1 to 13);
-			message_parity(2 to 14) <= message_parity(1 to 13);
+			data_out_valid(2 to FINAL_ARRAY_INDEX) <= data_out_valid(1 to FINAL_ARRAY_INDEX-1);
+			message_parity(2 to FINAL_ARRAY_INDEX) <= message_parity(1 to FINAL_ARRAY_INDEX-1);
  			
 			--step 1 ==============================
 			--find S1**3 
@@ -346,10 +347,10 @@ BEGIN
 
 			IF ((error_l2(M) = '1') xor (error_l2(M-1 downto 0) = x"FF")) then -- ensure under 255, if over or equal, subtract 255
 				--error_location2_0 <= std_lo error_l2(M-1 downto 0)+x"01"; --x"01" = (not 255)+1 = -255 
-				error_location2_0 <= std_logic_vector(unsigned(error_l2(M-1 downto 0))+1);
+				error_location2 <= std_logic_vector(unsigned(error_l2(M-1 downto 0))+1);
 				--error_location2_0 <= std_logic_vector(unsigned(error_l2(M-1 downto 0)));
 			else
-				error_location2_0 <= error_l2(M-1 downto 0); 
+				error_location2 <= error_l2(M-1 downto 0); 
 			end IF;
 
 
@@ -360,7 +361,7 @@ BEGIN
 			--step 11 ==============================
 			--one hot of error1
 
-			error_location2_1 <= error_location2_0;
+			
 			--one hot encoding of 
 			if (error_count_array(10) = TWO_ERRORS) and (message_parity(10) = '0') then --if 2+ errors and there is an even error count
 				
@@ -370,9 +371,20 @@ BEGIN
 				find_error_vectors_of_this(0) <= x"FF"; --dont flip a bit in message
 					-- x"FF"
 			end if;
+			--one hot encoding of error_location 2 or S1 if step2
+			if (error_count_array(11) = TWO_ERRORS) and (message_parity(11) = '0') then --2 (or more) errors and even error count
+				find_error_vectors_of_this(1) <= error_location2;
+
+			elsif (error_count_array(11) = ONE_ERROR) then --the parity is ignored here since 
+				find_error_vectors_of_this(1) <= log_S1_array(11);
+
+			else -- 0 errors 
+				find_error_vectors_of_this(1) <= x"FF"; --dont flip a bit in message
+				
+			end if;
 
 			--step 12 ==============================
-			--one hot of error2 and flip parity if relevant
+			--one hot of error1 and error2, flip parity if relevant
 			
 
 			--if there is exactly 1 error and the parity of the message is even
@@ -389,44 +401,24 @@ BEGIN
 			messages(12)(2**M-1 downto 1) <= messages(11)(2**M-1 downto 1);
 
 			
-			--one hot encoding of error_location 2 or S1 if step2
-			if (error_count_array(11) = TWO_ERRORS) and (message_parity(11) = '0') then --2 (or more) errors and even error count
-				find_error_vectors_of_this(1) <= error_location2_1;
-
-			elsif (error_count_array(11) = ONE_ERROR) then --the parity is ignored here since 
-				find_error_vectors_of_this(1) <= log_S1_array(11);
-
-			else -- 0 errors 
-				find_error_vectors_of_this(1) <= x"FF"; --dont flip a bit in message
-				
-			end if;
-			
 			--step 13 ==============================
-			--flip error1			
-			messages(13) <= (messages(12)(2**M-1 downto 1) xor (error_vectors(0))) & messages(12)(0);
-
-			
-			--step 14 ==============================
-			--flip error2
-			messages(14) <= (messages(13)(2**M-1 downto 1) xor (error_vectors(1))) & messages(13)(0);
-
-			--step 15 ==============================
+			--flip error1 and error2			
 			--output the corrected message and the errors found
-			code_out <= messages(14);
-			code_valid <= data_out_valid(14);
-			if (error_count_array(14) = NO_ERRORS and message_parity(14) = '0') then
+			code_out <= (messages(12)(2**M-1 downto 1) xor ((error_vectors(0)) or (error_vectors(1)))) & messages(12)(0);
+
+			code_valid <= data_out_valid(12);
+			if (error_count_array(FINAL_ARRAY_INDEX) = NO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '0') then
 				errors_found <= "00"; --0
-			elsif ((error_count_array(14) = NO_ERRORS and message_parity(14) = '1') or 
-				   (error_count_array(14) = ONE_ERROR and message_parity(14) = '1')) then
+			elsif ((error_count_array(FINAL_ARRAY_INDEX) = NO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '1') or 
+				   (error_count_array(FINAL_ARRAY_INDEX) = ONE_ERROR and message_parity(FINAL_ARRAY_INDEX) = '1')) then
 
 				errors_found <= "01"; --1
-			elsif ((error_count_array(14) = ONE_ERROR and message_parity(14) = '0') or 
-				   (error_count_array(14) = TWO_ERRORS and message_parity(14) = '0')) then
+			elsif ((error_count_array(FINAL_ARRAY_INDEX) = ONE_ERROR and message_parity(FINAL_ARRAY_INDEX) = '0') or 
+				   (error_count_array(FINAL_ARRAY_INDEX) = TWO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '0')) then
 				errors_found <= "10"; --2
 			else 
 				errors_found <= "11"; --3 or more
 			end if;
-				
 				
 
 				
@@ -434,7 +426,3 @@ BEGIN
 	END PROCESS;
 
 END ARCHITECTURE;
-
-	-- TODO:  
-	-- clean up arrays / other code
-	-- remove empty steps (14-16)

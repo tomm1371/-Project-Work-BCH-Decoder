@@ -21,7 +21,7 @@ ENTITY syndrome_calculator IS
 END ENTITY;
 
 ARCHITECTURE RTL OF syndrome_calculator IS
-	constant clk_cycles : INTEGER := 8;
+	constant clk_cycles : INTEGER := 3; --8
 	TYPE data_array IS ARRAY (1 TO clk_cycles) OF STD_LOGIC_VECTOR(2**M DOWNTO 0); --msb is data_valid
 	SIGNAL raw_data_array : data_array := (OTHERS => (OTHERS => '0'));
 
@@ -111,16 +111,67 @@ ARCHITECTURE RTL OF syndrome_calculator IS
 	TYPE t2 IS ARRAY (2**2-1 DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
 	TYPE t1 IS ARRAY (2-1    DOWNTO 0) of STD_LOGIC_VECTOR(M*T DOWNTO 0);
 	SIGNAL xor_array8 : t8 := (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array7 : t7 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array7 : t7 ;
 	SIGNAL xor_array6 : t6 := (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array5 : t5 := (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array4 : t4 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array5 : t5 ;
+	SIGNAL xor_array4 : t4 ;
 	SIGNAL xor_array3 : t3 := (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array2 : t2 := (OTHERS => (OTHERS => '0'));
-	SIGNAL xor_array1 : t1 := (OTHERS => (OTHERS => '0'));
+	SIGNAL xor_array2 : t2 ;
+	SIGNAL xor_array1 : t1 ;
 	
 begin
+	xor1 :FOR i IN 0 TO (2**7)-1 GENERATE
+	--for i in 0 TO (2**7)-1 LOOP			
+		xor_array7(i) <= xor_array8(i*2) xor xor_array8(i*2+1);
+	--END LOOP;
+	END GENERATE;
+	
+	--clk 2
+	--xor1_5 :FOR i IN 0 TO (2**6)-1 GENERATE
+	--for i in 0 TO (2**6)-1 LOOP			
+	--	xor_array6(i) <= xor_array7(i*2) xor xor_array7(i*2+1);
+	--END LOOP;
+	--END GENERATE;
 
+
+
+
+	xor2_1 :FOR i IN 0 TO (2**5)-1 GENERATE
+	--for i in 0 TO (2**5)-1 LOOP			
+		xor_array5(i) <= xor_array6(i*2) xor xor_array6(i*2+1);
+	--END LOOP;
+	END GENERATE;
+
+	xor2_2 :FOR i IN 0 TO (2**4)-1 GENERATE
+	--for i in 0 TO (2**4)-1 LOOP			
+		xor_array4(i) <= xor_array5(i*2) xor xor_array5(i*2+1);
+	--END LOOP;
+	END GENERATE;
+	--clk 3
+
+
+	--clk 4
+
+	
+	--clk 5
+	--xor3 :FOR i IN 0 TO (2**3)-1 GENERATE
+	--for i in 0 TO (2**3)-1 LOOP			
+	--	xor_array3(i) <= xor_array4(i*2) xor xor_array4(i*2+1);
+	--END LOOP;
+	--END GENERATE;
+
+	--clk 6
+	xor3_1 :FOR i IN 0 TO (2**2)-1 GENERATE
+	--for i in 0 TO (2**3)-1 LOOP			
+		xor_array2(i) <= xor_array3(i*2) xor xor_array3(i*2+1);
+	--END LOOP;
+	END GENERATE;
+
+	xor3_2 :FOR i IN 0 TO (2)-1 GENERATE
+	--for i in 0 TO (2**3)-1 LOOP			
+		xor_array1(i) <= xor_array2(i*2) xor xor_array2(i*2+1);
+	--END LOOP;
+	END GENERATE;
 
 	P1 : process(clk, rst)
 	begin
@@ -134,13 +185,9 @@ begin
 			S3 <= (OTHERS => '0');
 			
 			xor_array8 <=  (OTHERS => (OTHERS => '0'));
-			xor_array7 <=  (OTHERS => (OTHERS => '0'));
 			xor_array6 <=  (OTHERS => (OTHERS => '0'));
-			xor_array5 <=  (OTHERS => (OTHERS => '0'));
-			xor_array4 <=  (OTHERS => (OTHERS => '0'));
 			xor_array3 <=  (OTHERS => (OTHERS => '0'));
-			xor_array2 <=  (OTHERS => (OTHERS => '0'));
-			xor_array1 <=  (OTHERS => (OTHERS => '0'));
+			
 
 		ELSIF (rising_edge(clk)) THEN 
 			-- clk 0
@@ -177,40 +224,23 @@ begin
 				raw_data_array(1)(2**M-1 downto 0) <= (OTHERS => '0');
 			END IF;
 
-			--clk 1
-			for i in 0 TO (2**7)-1 LOOP			
-				xor_array7(i) <= xor_array8(i*2) xor xor_array8(i*2+1);
-			END LOOP;
-			
-			--clk 2
+
 			for i in 0 TO (2**6)-1 LOOP
 				xor_array6(i) <= xor_array7(i*2) xor xor_array7(i*2+1);
 			END LOOP;
-			
-			--clk 3
-			for i in 0 TO (2**5)-1 LOOP
-				xor_array5(i) <= xor_array6(i*2) xor xor_array6(i*2+1);
-			END LOOP;
 
-			--clk 4
-			for i in 0 TO (2**4)-1 LOOP
-				xor_array4(i) <= xor_array5(i*2) xor xor_array5(i*2+1);
-			END LOOP;
-			
-			--clk 5
-			for i in 0 TO (2**3)-1 LOOP
+			--for i in 0 TO (2**4)-1 LOOP
+			--	xor_array4(i) <= xor_array5(i*2) xor xor_array5(i*2+1);
+			--END LOOP;
+
+			for i in 0 TO (2**3)-1 LOOP			
 				xor_array3(i) <= xor_array4(i*2) xor xor_array4(i*2+1);
 			END LOOP;
 
-			--clk 6
-			for i in 0 TO (2**2)-1 LOOP
-				xor_array2(i) <= xor_array3(i*2) xor xor_array3(i*2+1);
-			END LOOP;
+			--for i in 0 TO (2**2)-1 LOOP
+			--	xor_array2(i) <= xor_array3(i*2) xor xor_array3(i*2+1);
+			--END LOOP;
 
-			--clk 7
-			for i in 0 TO (2)-1 LOOP
-				xor_array1(i) <= xor_array2(i*2) xor xor_array2(i*2+1);
-			END LOOP;
 			
 			--clk8
 			data_parity <= xor_array1(0)(M*T) xor xor_array1(1)(M*T);

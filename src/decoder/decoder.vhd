@@ -68,7 +68,7 @@ ARCHITECTURE RTL OF decoder IS
 	--=====================================================
 	----------------------| SIGNALS |----------------------
 	--=====================================================
-	Constant FINAL_ARRAY_INDEX : INTEGER  := 12;
+	Constant FINAL_ARRAY_INDEX : INTEGER  := 11;
 
 	--all these arrays just pass values to the next step, after they are initialised
 	TYPE S1_array_t IS ARRAY (1 TO 2) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
@@ -230,7 +230,7 @@ BEGIN
 				error_count_array(i+1) <= error_count_array(i);
 			END LOOP;
 			messages(1) <= messages0;
-			for i in 1 TO 10 LOOP
+			for i in 1 TO 9 LOOP
 				messages(i+1) <= messages(i);
 			END LOOP;
 			data_out_valid(1) <= data_out_valid0;
@@ -331,59 +331,100 @@ BEGIN
 				error_l2 <= ('1' & x"FF"); --the invalid error position
 			end if;
 
-			--step 10 ==============================
+			
 			--ensure under 255
 
 			--((error_l1(M) = '1' or error_l1(M-1 downto 0) = x"FF") and (error_l1 /= X"FFF"(M downto 0))) 
 			-- is the same as
 			--(error_l1(M) = '1' xor error_l1(M-1 downto 0) = x"FF")
 			
-			IF ((error_l1(M) = '1') xor error_l1(M-1 downto 0) = x"FF") then -- ensure under 255, if over or equal, subtract 255
-				error_location1 <= std_logic_vector(unsigned(error_l1(M-1 downto 0))+1); --x"01" = (not 255)+1 = -255 
+			--IF ((error_l1(M) = '1') xor error_l1(M-1 downto 0) = x"FF") then -- ensure under 255, if over or equal, subtract 255
+			--	error_location1 <= std_logic_vector(unsigned(error_l1(M-1 downto 0))+1); --x"01" = (not 255)+1 = -255 
 				--error_location1 <= std_logic_vector(unsigned(error_l1(M-1 downto 0)));
-			else
-				error_location1 <= error_l1(M-1 downto 0);
-			end IF;
+			--else
+			--	error_location1 <= error_l1(M-1 downto 0);
+			--end IF;
 
-			IF ((error_l2(M) = '1') xor (error_l2(M-1 downto 0) = x"FF")) then -- ensure under 255, if over or equal, subtract 255
+			--IF ((error_l2(M) = '1') xor (error_l2(M-1 downto 0) = x"FF")) then -- ensure under 255, if over or equal, subtract 255
 				--error_location2_0 <= std_lo error_l2(M-1 downto 0)+x"01"; --x"01" = (not 255)+1 = -255 
-				error_location2 <= std_logic_vector(unsigned(error_l2(M-1 downto 0))+1);
+			--	error_location2 <= std_logic_vector(unsigned(error_l2(M-1 downto 0))+1);
 				--error_location2_0 <= std_logic_vector(unsigned(error_l2(M-1 downto 0)));
-			else
-				error_location2 <= error_l2(M-1 downto 0); 
-			end IF;
-
-
-				--NOTE: error_locations are either 0-254 or 255
-				-- 255 (x"FF") means no correctable error! (there are 3 or more errors)
-				-- 0-254 is signal to correct the error at this position (excluding parity)
-
-			--step 11 ==============================
-			--one hot of error1
+			--else
+			--	error_location2 <= error_l2(M-1 downto 0); 
+			--end IF;
+	
 
 			
 			--one hot encoding of 
-			if (error_count_array(10) = TWO_ERRORS) and (message_parity(10) = '0') then --if 2+ errors and there is an even error count
+			--if (error_count_array(10) = TWO_ERRORS) and (message_parity(10) = '0') then --if 2+ errors and there is an even error count
 				
-				find_error_vectors_of_this(0) <= error_location1;
+			--	find_error_vectors_of_this(0) <= error_location1;
+			
+			--else --there is an uneven error count or 0 
+			--	find_error_vectors_of_this(0) <= x"FF"; --dont flip a bit in message
+					-- x"FF"
+			--end if;
+			--one hot encoding of error_location 2 or S1 if step2
+			--if (error_count_array(10) = TWO_ERRORS) and (message_parity(10) = '0') then --2 (or more) errors and even error count
+			--	find_error_vectors_of_this(1) <= error_location2;
+
+			--elsif (error_count_array(10) = ONE_ERROR) then --the parity is ignored here since 
+			--	find_error_vectors_of_this(1) <= log_S1_array(11);
+
+			--else -- 0 errors 
+			--	find_error_vectors_of_this(1) <= x"FF"; --dont flip a bit in message
+				
+			--end if;
+			
+			
+
+
+
+			--step 10 ==============================
+
+			--NOTE: error_locations are either 0-254 or 255
+			-- 255 (x"FF") means no correctable error! (there are 3 or more errors)
+			-- 0-254 is signal to correct the error at this position (excluding parity)
+
+			--if the 
+
+
+			--one hot of error1
+			--one hot encoding of error_l1
+			if (error_count_array(9) = TWO_ERRORS) and (message_parity(9) = '0') then --if 2+ errors and there is an even error count
+				IF ((error_l1(M) = '1') xor error_l1(M-1 downto 0) = x"FF") then -- ensure under 255, if over or equal, subtract 255
+					find_error_vectors_of_this(0) <= std_logic_vector(unsigned(error_l1(M-1 downto 0))+1); --x"01" = (not 255)+1 = -255 
+				--error_location1 <= std_logic_vector(unsigned(error_l1(M-1 downto 0)));
+				else
+					find_error_vectors_of_this(0) <= error_l1(M-1 downto 0);
+				end IF;
+				
 			
 			else --there is an uneven error count or 0 
 				find_error_vectors_of_this(0) <= x"FF"; --dont flip a bit in message
 					-- x"FF"
 			end if;
-			--one hot encoding of error_location 2 or S1 if step2
-			if (error_count_array(11) = TWO_ERRORS) and (message_parity(11) = '0') then --2 (or more) errors and even error count
-				find_error_vectors_of_this(1) <= error_location2;
 
-			elsif (error_count_array(11) = ONE_ERROR) then --the parity is ignored here since 
-				find_error_vectors_of_this(1) <= log_S1_array(11);
+
+			--one hot of error2
+			--one hot encoding of error_l2 or S1 if step2
+			if (error_count_array(9) = TWO_ERRORS) and (message_parity(9) = '0') then --2 (or more) errors and even error count
+				IF ((error_l2(M) = '1') xor (error_l2(M-1 downto 0) = x"FF")) then -- ensure under 255, if over or equal, subtract 255
+					--error_location2_0 <= std_lo error_l2(M-1 downto 0)+x"01"; --x"01" = (not 255)+1 = -255 
+					find_error_vectors_of_this(1) <= std_logic_vector(unsigned(error_l2(M-1 downto 0))+1);
+					--error_location2_0 <= std_logic_vector(unsigned(error_l2(M-1 downto 0)));
+				else
+					find_error_vectors_of_this(1) <= error_l2(M-1 downto 0); 
+				end IF;
+
+			elsif (error_count_array(9) = ONE_ERROR) then --the parity is ignored here since 
+				find_error_vectors_of_this(1) <= log_S1_array(9);
 
 			else -- 0 errors 
 				find_error_vectors_of_this(1) <= x"FF"; --dont flip a bit in message
 				
 			end if;
-
-			--step 12 ==============================
+			--step 11 ==============================
 			--one hot of error1 and error2, flip parity if relevant
 			
 
@@ -392,21 +433,22 @@ BEGIN
 
 			--if there is no errors but the parity is wrong, 
 				--flip the parity bit
-			IF (((error_count_array(11) = ONE_ERROR) and (message_parity(11) = '0')) or ((error_count_array(11) = NO_ERRORS) and (message_parity(11) = '1'))) THEN
-				messages(12)(0) <= not messages(11)(0); --flip parity bit
+			IF (((error_count_array(10) = ONE_ERROR) and (message_parity(10) = '0')) or ((error_count_array(10) = NO_ERRORS) and (message_parity(10) = '1'))) THEN
+				messages(11)(0) <= not messages(10)(0); --flip parity bit
 			ELSE
-				messages(12)(0) <= messages(11)(0); --pass parity bit
+				messages(11)(0) <= messages(10)(0); --pass parity bit
 			END IF;
 			--pass the rest of the message along
-			messages(12)(2**M-1 downto 1) <= messages(11)(2**M-1 downto 1);
+			messages(11)(2**M-1 downto 1) <= messages(10)(2**M-1 downto 1);
 
 			
-			--step 13 ==============================
+			--step 12 ==============================
 			--flip error1 and error2			
 			--output the corrected message and the errors found
-			code_out <= (messages(12)(2**M-1 downto 1) xor ((error_vectors(0)) or (error_vectors(1)))) & messages(12)(0);
+			code_out <= (messages(FINAL_ARRAY_INDEX)(2**M-1 downto 1) xor ((error_vectors(0)) or (error_vectors(1)))) & messages(FINAL_ARRAY_INDEX)(0);
 
-			code_valid <= data_out_valid(12);
+			code_valid <= data_out_valid(FINAL_ARRAY_INDEX);
+
 			if (error_count_array(FINAL_ARRAY_INDEX) = NO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '0') then
 				errors_found <= "00"; --0
 			elsif ((error_count_array(FINAL_ARRAY_INDEX) = NO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '1') or 

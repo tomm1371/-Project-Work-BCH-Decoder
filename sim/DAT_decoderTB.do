@@ -44,6 +44,6 @@ vsim work.decoder_tb
 add wave -recursive *
 
 # Run simulation
-run 64000 ns
+run 0.68 ms
 
 # call_python {$project_root}

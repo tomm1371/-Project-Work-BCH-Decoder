@@ -191,7 +191,7 @@ begin
 
 		ELSIF (rising_edge(clk)) THEN 
 			-- clk 0
-			--parity should have no effect on the syndrome calculation
+			--parity has no effect on the syndrome calculation
 			xor_array8(0)(M*T -1 downto 0) <= (OTHERS => '0');
 			raw_data_array(1)(2**M) <= data_valid;
 			IF data_valid = '1' THEN

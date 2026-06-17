@@ -21,6 +21,8 @@ set_global_assignment -name VHDL_FILE ../src/arithmetic/gf_poly_eval.vhd
 set_global_assignment -name VHDL_FILE ../src/arithmetic/gf_mod.vhd
 set_global_assignment -name VHDL_FILE ../src/arithmetic/gf_mod_256.vhd
 
+
+
 set_global_assignment -name VHDL_FILE ../sim/bch_encoder_tb_256.vhd
 
 

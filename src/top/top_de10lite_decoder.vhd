@@ -13,6 +13,16 @@ ENTITY top_de10lite_decoder IS
 END ENTITY top_de10lite_decoder;
 
 ARCHITECTURE rtl OF top_de10lite_decoder IS
+
+    component pll
+        PORT
+        (
+            inclk0		: IN STD_LOGIC  := '0';
+            c0		: OUT STD_LOGIC 
+        );
+    end component;
+    
+    SIGNAL clk : STD_LOGIC;
     SIGNAL data_in : STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0) := (OTHERS => '0');
     SIGNAL data_valid : STD_LOGIC := '0';
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0) := (OTHERS => '0');
@@ -65,7 +75,7 @@ BEGIN
             ROM_ADDR_WIDTH => CODEWORD_ADDR_WIDTH
         )
         PORT MAP(
-            clk => MAX10_CLK1_50,
+            clk => clk,
             rst => NOT KEY(0),
             start => reader_start,
             data_out => data_in,
@@ -73,14 +83,17 @@ BEGIN
             done => reader_done
         );
 
+    clk_inst : ENTITY work.pll
+        PORT MAP (inclk0 => MAX10_CLK1_50, c0 => clk);
+
     -- Synchronize the KEY1 release so the reader starts once per button release.
-    PROCESS (MAX10_CLK1_50, KEY(0))
+    PROCESS (clk, KEY(0))
     BEGIN
         IF KEY(0) = '0' THEN
             key1_sync_0 <= '1';
             key1_sync_1 <= '1';
             reader_start <= '0';
-        ELSIF rising_edge(MAX10_CLK1_50) THEN
+        ELSIF rising_edge(clk) THEN
             key1_sync_0 <= KEY(1);
             key1_sync_1 <= key1_sync_0;
             reader_start <= key1_sync_0 AND NOT key1_sync_1;
@@ -95,7 +108,7 @@ BEGIN
             T => 2
         )
         PORT MAP(
-            clk => MAX10_CLK1_50,
+            clk => clk,
             rst => NOT KEY(0),
             data_in => data_in,
             data_valid => data_valid,
@@ -105,7 +118,7 @@ BEGIN
         );
 
     -- Process to count error types and update HEX displays for visualization
-    PROCESS (MAX10_CLK1_50, KEY(0))
+    PROCESS (clk, KEY(0))
     BEGIN
         IF KEY(0) = '0' THEN
         -- reset counts and displays when reset is pressed
@@ -120,7 +133,7 @@ BEGIN
             one_error_count <= (OTHERS => '0');
             two_error_count <= (OTHERS => '0');
             three_error_count <= (OTHERS => '0');
-        ELSIF rising_edge(MAX10_CLK1_50) THEN
+        ELSIF rising_edge(clk) THEN
         -- 
             IF code_valid = '1' THEN
                 total_decoded <= std_logic_vector(unsigned(total_decoded) + 1);

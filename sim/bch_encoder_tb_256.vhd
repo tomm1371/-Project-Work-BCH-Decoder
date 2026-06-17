@@ -68,7 +68,7 @@ BEGIN
             rst <= '1';
             WAIT FOR CLK_PERIOD * 2;
             rst <= '0';
-            WAIT FOR CLK_PERIOD * 2;
+            WAIT FOR CLK_PERIOD * 2.5;
 
             rom_init_complete := true;
             --readline(input_file, line_in); -- ignore the first line (header)

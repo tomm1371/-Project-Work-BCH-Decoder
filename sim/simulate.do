@@ -33,4 +33,4 @@ vsim work.bch_encoder_tb_256
 add wave -radix hex -recursive *
 
 # Run simulation for a fixed time
-run 11000 ns
+run 10250 ns

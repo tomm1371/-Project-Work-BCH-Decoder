@@ -39,7 +39,7 @@ ARCHITECTURE rtl OF product_encoder IS
   TYPE output_matrix_t IS ARRAY (0 TO BCH_CODE_BITS - 1) -- finally when both rows and columns are encoded, we arrive at a 256x256 matrix
     OF STD_LOGIC_VECTOR(BCH_CODE_BITS - 1 DOWNTO 0);
 
-  -- Statematchine for the encoding. Will be commented further later
+  -- State-machine for the encoding. Will be commented further later
   TYPE state_t IS (
     LOAD_INPUT,
     FEED_ROWS,

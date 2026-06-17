@@ -1,11 +1,11 @@
 -- syndrome_calculator
 --
--- Takes one received extended BCH(256,239)-style codeword
+-- Takes one  BCH(256,239) codeword
 -- and calculates:
 -- S1 = r(alpha)
 -- S3 = r(alpha^3)
 -- data_parity = XOR of all 256 received bit
--- The input data is delayed through a small pipeline so that data_out
+-- The input data is delayed through a small pipeline so data_out
 -- and data_out_valid are aligned with S1, S3 and data_parity.
 
 LIBRARY ieee;
@@ -181,7 +181,7 @@ BEGIN
       IF data_valid = '1' THEN
 
         -- If the input data is valid, we store it in the pipeline.
-		  -- Remember that this is the original message and the valid bit with it.
+		  -- Remember that this is the original message and the valid bit.
         raw_data_array(1)(2 ** M - 1 DOWNTO 0) <= data_in;
 
         -- Overall parity contribution from all 256 bits.
@@ -229,7 +229,6 @@ BEGIN
       -- Clock stages 1 to 7:
       -- Pipelined XOR tree to make each clock faster.
 		-- It is assumed that having 8 fast clocks is better than 1 slow clock
-		-- Since the critical path of the entire decoder is very important.
 
 		-- The tree will simply XOR each pair in the array that is one factor larger than itself
 		-- and then fill itself with the result.

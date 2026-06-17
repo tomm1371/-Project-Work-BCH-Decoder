@@ -3,8 +3,8 @@
 #   do sim/DAT_decoderTB.do
 
 # Resolve the project directories explicitly.
-# set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
-set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
+set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
+# set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
 set script_dir $project_root/sim
 
 cd $script_dir
@@ -44,6 +44,6 @@ vsim work.decoder_tb
 add wave -recursive *
 
 # Run simulation
-run 0.68 ms
+run 7000 ns
 
 # call_python {$project_root}

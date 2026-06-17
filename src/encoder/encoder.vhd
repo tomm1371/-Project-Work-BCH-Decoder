@@ -3,7 +3,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
-ENTITY bch_encoder_256 IS
+ENTITY encoder IS
 	GENERIC (
 		M : INTEGER := 8; -- message length
 		T : INTEGER := 2); -- error correction capability
@@ -17,7 +17,7 @@ ENTITY bch_encoder_256 IS
 	);
 END ENTITY;
 
-ARCHITECTURE RTL OF bch_encoder_256 IS
+ARCHITECTURE RTL OF encoder IS
 	TYPE parity_matrix_t IS ARRAY (0 TO 16) OF STD_LOGIC_VECTOR(0 TO 238);
 	CONSTANT parity_matrix : parity_matrix_t := (
 		0 => "11111000111110011001110001111010101110100100000000101111001000110100001010100000100110100101010110101100100101110101101111110010001011010000001100000101111100010010110100100111111100010111110000010110000101000110011011110011101000010111110",
@@ -38,7 +38,12 @@ ARCHITECTURE RTL OF bch_encoder_256 IS
 		15 => "11110001111100110011100011110101011101001000000001011110010001101000010101000001001101001010101101011001001011101011011111100100010110100000011000001011111000100101101001001111111000101111100000101100001010001100110111100111010000101111101",
 		16 => "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
 	);
+
+	-- Internal registers
 	SIGNAL output_reg : STD_LOGIC;
+	SIGNAL data_reg : STD_LOGIC_VECTOR(238 DOWNTO 0);
+	signal parity_reg : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	signal even_parity_reg : STD_LOGIC;
 
 BEGIN
 	PROCESS (clk)
@@ -54,16 +59,17 @@ BEGIN
 			ELSE
 				-- Default
 				code_valid <= '0';
-				-- Step 3: register result - appears on output NEXT clock edge
+
+				-- Step 4: registered output send with valid pulse
 					IF (output_reg = '1') THEN
 						output_reg <= '0';
-						code_out <= data_in & bch_parity & even_parity;
-						code_valid <= '1'; -- goes high one cycle after data_valid
+						code_out <= data_reg & parity_reg & even_parity_reg;
+						code_valid <= '1';
 					END IF;
 
 				IF data_valid = '1' THEN
 
-					
+					data_reg <= data_in;
 
 					-- Step 1: BCH parity via matrix
 					FOR parity_index IN 0 TO 15 LOOP
@@ -85,7 +91,12 @@ BEGIN
 						even_parity := even_parity XOR bch_parity(i);
 					END LOOP;
 
+					-- Step 3: register result 
+					data_reg <= data_in;
+					parity_reg <= bch_parity;
+					even_parity_reg <= even_parity;
 					output_reg <= '1';
+
 				END IF;
 			END IF;
 		END IF;

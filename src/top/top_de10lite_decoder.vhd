@@ -1,7 +1,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
-USE work.codeword_file_pkg.ALL;
+USE work.codeword_decoder_pkg.ALL;
 
 ENTITY top_de10lite_decoder IS
     PORT (

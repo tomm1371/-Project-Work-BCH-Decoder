@@ -2,7 +2,7 @@ import pathlib
 
 
 testData = open(pathlib.Path("sim","TestFiles","encoderOutput.txt"), "r")
-decoderOut = open(pathlib.Path("sim","TestFiles","encoderOutputcopy.txt"), "r")
+decoderOut = open(pathlib.Path("sim","TestFiles","decoderOutput.txt"), "r")
 errorFile = open(pathlib.Path("sim","TestFiles","error_pos.txt"), "r")
 #testData.readline() # skip first line
 lineE = errorFile.readline()
@@ -16,7 +16,7 @@ while lineTest != "" and lineDeco != "":
     if lineTest != lineDeco:
         diff = int(lineTest, 2) ^ int(lineDeco, 2)
         print("Error on codeword: "+(str(i).zfill(3))+"  difference: " + str((hex(diff)[2:])).zfill(64) +  " ("+ str(bin(diff)[2:].count("1")) +" bits)")
-        print("                Errors in codeword: "+ (hex(2**int(errorPos[0],16) ^ 2**int(errorPos[1], 16))[2:]).zfill(64) + " "+str(errorPos)+"\n")
+        #print("                Errors in codeword: "+ (hex(2**int(errorPos[0],16) ^ 2**int(errorPos[1], 16))[2:]).zfill(64) + " "+str(errorPos)+"\n")
         incorrect += 1
     
     lineTest = testData.readline().strip()

@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(10M50DAF484) Path("C:/Users/david/Desktop/-Project-Work-BCH-Decoder/quartus/") File("bch_de10lite_decoder.sof") MfrSpec(OpMask(1));
+		Device PartName(10M50DAF484) Path("C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/") File("bch_de10lite_decoder.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 

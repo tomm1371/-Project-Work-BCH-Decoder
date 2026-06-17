@@ -1,7 +1,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
-USE work.codeword_file_pkg.ALL;
+USE work.codeword_encoder_pkg.ALL;
 
 ENTITY top_de10lite_encoder IS
     PORT (
@@ -12,7 +12,7 @@ ENTITY top_de10lite_encoder IS
 END ENTITY top_de10lite_encoder;
 
 ARCHITECTURE rtl OF top_de10lite_encoder IS
-    SIGNAL data_in : STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0) := (OTHERS => '0'); -- 239 bits, initialize with 1 followed by 238 zeros for testing
+    SIGNAL data_in : STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0) := (OTHERS => '0');
     SIGNAL data_valid : STD_LOGIC := '0';
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0) := (OTHERS => '0');
     SIGNAL code_valid : STD_LOGIC := '0';
@@ -80,7 +80,7 @@ BEGIN
     END PROCESS;
 
     -- Instantiate the existing encoder
-    encoder_inst : ENTITY work.bch_encoder_256
+    encoder_inst : ENTITY work.encoder
         PORT MAP(
             clk => MAX10_CLK1_50,
             rst => NOT KEY(0),

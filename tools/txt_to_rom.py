@@ -1,15 +1,16 @@
 # Usage
-# python tools/txt_to_rom.py sim/TestFiles/*file to read from*.txt --out-dir quartus --name bch_decoder_codewords
-"""Convert a text file of bitstrings into Quartus-friendly ROM assets.
+# python tools/txt_to_rom.py sim/TestFiles/<file>.txt --target encoder
+# python tools/txt_to_rom.py sim/TestFiles/<file>.txt --target decoder
+"""Convert a text file of bitstrings into a VHDL codeword package.
 
 The input is expected to contain one codeword per line using either:
 - raw binary digits, or
 - raw hexadecimal digits.
 
 Blank lines and lines starting with # or -- are ignored.
-The script writes both a Quartus .mif file and a VHDL package containing
-the normalized codewords as a ROM constant array. The hardware now reads
-the VHDL package directly, which is more reliable than inferred memory init.
+The script writes a VHDL package containing the codewords as a ROM constant
+array. Use --target encoder or --target decoder to control the output package
+and type names, and the output file destination.
 """
 
 from __future__ import annotations
@@ -75,47 +76,40 @@ def normalize_words(words: list[str], width: int | None, data_kind: str) -> tupl
     return normalized, width
 
 
-def write_mif(output_path: Path, words: list[str], width: int) -> None:
-    depth = len(words)
-    lines = [
-        f"WIDTH={width};",
-        f"DEPTH={depth};",
-        "ADDRESS_RADIX=DEC;",
-        "DATA_RADIX=BIN;",
-        "CONTENT BEGIN",
-    ]
-    for index, word in enumerate(words):
-        lines.append(f"    {index} : {word};")
-    lines.append("END;")
-    output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def write_package(output_path: Path, words: list[str], width: int) -> None:
+def write_package(output_path: Path, words: list[str], width: int, target: str) -> None:
     depth = len(words)
     addr_width = ceil_log2(depth)
+
+    # Derive naming from target
+    pkg_name   = f"codeword_{target}_pkg"
+    type_name  = f"codeword_{target}_rom_t"
+    const_name = f"CODEWORD_{target.upper()}_ROM"
+
     rom_lines = []
     for index, word in enumerate(words):
         suffix = "," if index < depth - 1 else ""
-        rom_lines.append(f"    {index} => \"{word}\"{suffix}")
+        rom_lines.append(f"        {index} => \"{word}\"{suffix}")
 
     package_text = f"""LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 
-PACKAGE codeword_file_pkg IS
-    CONSTANT CODEWORD_WIDTH : POSITIVE := {width};
-    CONSTANT CODEWORD_COUNT : POSITIVE := {depth};
+PACKAGE {pkg_name} IS
+    CONSTANT CODEWORD_WIDTH      : POSITIVE := {width};
+    CONSTANT CODEWORD_COUNT      : POSITIVE := {depth};
     CONSTANT CODEWORD_ADDR_WIDTH : POSITIVE := {addr_width};
 
-    TYPE codeword_rom_t IS ARRAY (0 TO CODEWORD_COUNT - 1) OF STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0);
+    TYPE {type_name} IS ARRAY (0 TO CODEWORD_COUNT - 1)
+        OF STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0);
 
-    CONSTANT CODEWORD_ROM : codeword_rom_t := (
+    CONSTANT {const_name} : {type_name} := (
 {chr(10).join(rom_lines)}
     );
-END PACKAGE codeword_file_pkg;
 
-PACKAGE BODY codeword_file_pkg IS
-END PACKAGE BODY codeword_file_pkg;
+END PACKAGE {pkg_name};
+
+PACKAGE BODY {pkg_name} IS
+END PACKAGE BODY {pkg_name};
 """
     output_path.write_text(package_text, encoding="utf-8")
 
@@ -124,15 +118,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path, help="Source txt file")
     parser.add_argument(
-        "--out-dir",
-        type=Path,
-        default=Path("quartus"),
-        help="Directory for generated MIF/package files",
-    )
-    parser.add_argument(
-        "--name",
-        default="bch_decoder_codewords",
-        help="Base filename for generated files",
+        "--target",
+        choices=["encoder", "decoder"],
+        default="decoder",
+        help="Target use: 'encoder' or 'decoder'. Controls package name and output path.",
     )
     parser.add_argument(
         "--width",
@@ -147,16 +136,12 @@ def main() -> int:
     words, data_kind = parse_codewords(args.input)
     normalized_words, width = normalize_words(words, args.width, data_kind)
 
-    out_dir = args.out_dir if args.out_dir.is_absolute() else repo_root / args.out_dir
-    out_dir.mkdir(parents=True, exist_ok=True)
-    mif_path = out_dir / f"{args.name}.mif"
-    pkg_path = repo_root / "src" / "top" / "codeword_file_pkg.vhd"
+    pkg_filename = f"codeword_{args.target}_pkg.vhd"
+    pkg_path = repo_root / "src" / "data" / pkg_filename
 
-    write_mif(mif_path, normalized_words, width)
-    write_package(pkg_path, words=normalized_words, width=width)
+    write_package(pkg_path, words=normalized_words, width=width, target=args.target)
 
-    print(f"Wrote {mif_path} ({len(normalized_words)} words x {width} bits)")
-    print(f"Wrote {pkg_path}")
+    print(f"Wrote {pkg_path}  ({len(normalized_words)} words x {width} bits, target={args.target})")
     return 0
 
 

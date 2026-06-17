@@ -439,10 +439,13 @@ set_global_assignment -name QII_AUTO_PACKED_REGISTERS NORMAL
 set_global_assignment -name MUX_RESTRUCTURE OFF
 set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
 set_global_assignment -name STATE_MACHINE_PROCESSING "ONE-HOT"
+set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
+set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
 set_global_assignment -name SDC_FILE bch_de10lite_decoder.sdc
-set_global_assignment -name VHDL_FILE ../src/top/codeword_file_pkg.vhd
-set_global_assignment -name VHDL_FILE ../src/top/codeword_stream_reader.vhd
 set_global_assignment -name VHDL_FILE ../src/top/top_de10lite_decoder.vhd
+set_global_assignment -name VHDL_FILE ../src/data/codeword_decoder_pkg.vhd
+set_global_assignment -name VHDL_FILE ../src/data/codeword_decoder_reader.vhd
 set_global_assignment -name VHDL_FILE ../src/decoder/decoder.vhd
 set_global_assignment -name VHDL_FILE ../src/decoder/syndrome_calculator.vhd
 set_global_assignment -name VHDL_FILE ../src/decoder/one_hot_encoder.vhd
@@ -450,8 +453,5 @@ set_global_assignment -name VHDL_FILE ../src/LUT/a_to_log_a_tabel.vhd
 set_global_assignment -name VHDL_FILE ../src/LUT/a_to_a_pow3_tabel.vhd
 set_global_assignment -name VHDL_FILE ../src/LUT/log_A_to_log_rootsOfA_tabel.vhd
 set_global_assignment -name SIGNALTAP_FILE stp1.stp
-set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
-set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
-set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
 set_global_assignment -name QIP_FILE pll.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

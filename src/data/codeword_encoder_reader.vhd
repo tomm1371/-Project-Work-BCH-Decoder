@@ -1,7 +1,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
-USE work.codeword_file_pkg.ALL;
+USE work.codeword_encoder_pkg.ALL;
 
 
 ENTITY codeword_stream_reader IS
@@ -24,7 +24,7 @@ ARCHITECTURE rtl OF codeword_stream_reader IS
     SIGNAL address : UNSIGNED(ROM_ADDR_WIDTH - 1 DOWNTO 0) := (OTHERS => '0');
     SIGNAL active : STD_LOGIC := '0';
 BEGIN
-    data_out <= CODEWORD_ROM(TO_INTEGER(address));
+    data_out <= CODEWORD_ENCODER_ROM(TO_INTEGER(address));
     data_valid <= active;
 
     PROCESS (clk, rst)

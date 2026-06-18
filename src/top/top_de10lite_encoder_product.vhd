@@ -14,18 +14,26 @@ END ENTITY top_de10lite_encoder;
 ARCHITECTURE rtl OF top_de10lite_encoder IS
 
     -- Signals for connecting components and internal logic
+    -- data input with validation
     SIGNAL data_in : STD_LOGIC_VECTOR(CODEWORD_WIDTH - 1 DOWNTO 0) := (OTHERS => '0');
     SIGNAL data_valid : STD_LOGIC := '0';
+
+    -- output codeword and validation and ready signals
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0) := (OTHERS => '0');
     SIGNAL code_valid : STD_LOGIC := '0';
     SIGNAL busy : STD_LOGIC := '0';
+    SIGNAL row_ready : STD_LOGIC := '0';
 
     -- Signals for controlling the codeword stream reader and key synchronization
     SIGNAL reader_done : STD_LOGIC := '0';
     SIGNAL key1_sync_0 : STD_LOGIC := '1';
     SIGNAL key1_sync_1 : STD_LOGIC := '1';
     SIGNAL reader_start : STD_LOGIC := '0';
-    SIGNAL total_encoded : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
+
+    -- Signal to analyze data on 7-seg display
+    SIGNAL product_total : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL total_encoded : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL block_done : STD_LOGIC := '0';
 
     -- map hex to 7-seg for visualization
     FUNCTION hex_to_7seg(hex : STD_LOGIC_VECTOR(3 DOWNTO 0)) RETURN STD_LOGIC_VECTOR IS
@@ -90,17 +98,20 @@ BEGIN
     encoder_inst : ENTITY work.encoder_product
         PORT MAP(
             clk => MAX10_CLK1_50,
-            rst => NOT KEY(0),
-            data_in => data_in,
-            data_valid => data_valid,
-            busy => busy,
-            code_out => code_out,
-            code_valid => code_valid
+            reset => NOT KEY(0),
+            -- input
+            row_valid => data_valid,
+            row_in => data_in,
+
+            row_ready => row_ready,
+            -- output
+            codeword_valid => code_valid,
+            codeword_out => code_out,
+            block_done => block_done
         );
 
-    -- Map the code_out to the HEX displays for visualization
-    -- HEX4 and HEX5 will display the total number of codewords encoded,
-    -- while HEX0-HEX3 will display the last encoded codeword when code_valid is high, to ensure data has been processed
+    -- HEX4 and HEX5 will display the total number of product codewords encoded
+    -- HEX0-HEX3 will display the total number of codewords encoded
     PROCESS (MAX10_CLK1_50, KEY(0))
     BEGIN
         IF KEY(0) = '0' THEN
@@ -111,17 +122,22 @@ BEGIN
             HEX4 <= (OTHERS => '1');
             HEX5 <= (OTHERS => '1');
             total_encoded <= (OTHERS => '0');
+            product_total <= (OTHERS => '0');
         ELSIF (rising_edge(MAX10_CLK1_50)) THEN
 
             IF code_valid = '1' THEN
                 total_encoded <= STD_LOGIC_VECTOR(unsigned(total_encoded) + 1);
             END IF;
-            HEX0 <= hex_to_7seg(code_out(3 DOWNTO 0));
-            HEX1 <= hex_to_7seg(code_out(7 DOWNTO 4));
+            IF block_done = '1' THEN
+                product_total <= STD_LOGIC_VECTOR(unsigned(product_total) + 1);
+            END IF;
+            busy <= not row_ready; -- busy when not ready for next row
+            HEX0 <= hex_to_7seg(total_encoded(3 DOWNTO 0));
+            HEX1 <= hex_to_7seg(total_encoded(7 DOWNTO 4));
             HEX2 <= hex_to_7seg(code_out(11 DOWNTO 8));
             HEX3 <= hex_to_7seg(code_out(15 DOWNTO 12));
-            HEX4 <= hex_to_7seg(total_encoded(3 DOWNTO 0));
-            HEX5 <= hex_to_7seg(total_encoded(7 DOWNTO 4));
+            HEX4 <= hex_to_7seg(product_total(3 DOWNTO 0));
+            HEX5 <= hex_to_7seg(product_total(7 DOWNTO 4));
         END IF;
     END PROCESS;
 

@@ -10,7 +10,7 @@ END ENTITY bch_encoder_tb_256;
 ARCHITECTURE Behavioral OF bch_encoder_tb_256 IS
 
     -- Component declaration for the Unit Under Test (UUT)
-    COMPONENT bch_encoder_256
+    COMPONENT encoder
         PORT (
             clk : IN STD_LOGIC;
             rst : IN STD_LOGIC;
@@ -36,7 +36,7 @@ ARCHITECTURE Behavioral OF bch_encoder_tb_256 IS
 
 BEGIN
     -- Instantiate the Unit Under Test (UUT)
-    uut : bch_encoder_256
+    uut : encoder
     PORT MAP(
         clk => clk,
         rst => rst,

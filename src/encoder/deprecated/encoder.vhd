@@ -3,7 +3,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
-ENTITY bch_encoder_256 IS
+ENTITY encoder IS
 	GENERIC (
 		M : INTEGER := 8; -- message length
 		T : INTEGER := 2); -- error correction capability
@@ -17,7 +17,7 @@ ENTITY bch_encoder_256 IS
 	);
 END ENTITY;
 
-ARCHITECTURE RTL OF bch_encoder_256 IS
+ARCHITECTURE RTL OF encoder IS
 	CONSTANT N : INTEGER := 2 ** M - 1;
 	CONSTANT R : INTEGER := M * T;
 

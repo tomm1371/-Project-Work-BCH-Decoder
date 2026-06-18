@@ -34,7 +34,7 @@ ARCHITECTURE decoder_tb_arch OF decoder_tb IS
 	SIGNAL code_validTB : STD_LOGIC;
 	--SIGNAL errors_foundTB : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
-	file input_file : TEXT open READ_MODE is "TestFiles/codes_with_errors.txt";
+	file input_file : TEXT open READ_MODE is "TestFiles/encoderOutput.txt";
 	--file input_file : TEXT open READ_MODE is "ImageTesting/encodedParrotErrors.txt";
     file output_file : TEXT open WRITE_MODE is "TestFiles/decoderOutput.txt";
 
@@ -74,7 +74,7 @@ BEGIN
 			readline(input_file, line_in); 
 			next when line_in'length = 0;           
 			--read(line_in, vec);
-			hread(line_in, vec);
+			read(line_in, vec);
 			data_validTB <= '1';
 			data_inTB <= vec;
 			WAIT FOR CLK_PERIOD;

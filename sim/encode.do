@@ -3,8 +3,8 @@
 #   do sim/simulate.do
 
 # Resolve the project directories explicitly.
-# set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
-set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
+set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
+# set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
 set script_dir $project_root/sim
 
 cd $script_dir
@@ -20,11 +20,11 @@ vlib work
 vmap work work
 
 # Compile design files
-vcom -2008 $project_root/src/encoder/gf_mod_256.vhd
-vcom -2008 $project_root/src/encoder/bch_encoder_256.vhd
+#vcom -2008 $project_root/src/encoder/deprecated/gf_mod_256.vhd
+vcom -2008 $project_root/src/encoder/encoder.vhd
 
 # Compile testbench
-vcom -2008 $script_dir/bch_encoder_tb_256.vhd
+vcom -2008 $script_dir/encoder_tb.vhd
 
 # Start simulation
 vsim work.bch_encoder_tb_256
@@ -33,4 +33,4 @@ vsim work.bch_encoder_tb_256
 add wave -radix hex -recursive *
 
 # Run simulation for a fixed time
-run 10250 ns
+run 5500 ns

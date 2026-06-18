@@ -1,110 +1,176 @@
-library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all;
+LIBRARY IEEE;
+USE IEEE.std_logic_1164.ALL;
+USE IEEE.numeric_std.ALL;
+
+ENTITY log_A_to_log_rootsOfA_tabel IS
+  PORT (
+    address  : IN  STD_LOGIC_VECTOR(7 DOWNTO 0);  -- log(A)
+    contents : OUT STD_LOGIC_VECTOR(15 DOWNTO 0); -- log(root1) & log(root2)
+
+    clk : IN STD_LOGIC;
+    rst : IN STD_LOGIC
+  );
+END ENTITY log_A_to_log_rootsOfA_tabel;
 
 
-entity log_A_to_log_rootsOfA_tabel is
-port(address  : in  std_logic_vector(7 DOWNTO 0); -- memory address
-    contents  : out std_logic_vector(15 DOWNTO 0); -- value
-    clk, rst  : in  std_logic
-        );
-end entity log_A_to_log_rootsOfA_tabel;
+ARCHITECTURE log_A_to_log_rootsOfA_tabel_arch OF log_A_to_log_rootsOfA_tabel IS
 
-architecture log_A_to_log_rootsOfA_tabel_arch of log_A_to_log_rootsOfA_tabel is
+  TYPE LUT8_type  IS ARRAY (0 TO 255) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
+  TYPE LUT16_type IS ARRAY (0 TO 255) OF STD_LOGIC_VECTOR(15 DOWNTO 0);
 
-type LUT_type is array (0 to 255) of std_logic_vector(15 DOWNTO 0);
 
-constant LUT : LUT_type := (
-000 => "0101010110101010", 001 => "0000101111110101", 002 => "0001011011101011", 003 => "0001001011110000", 
-004 => "0010110011010111", 005 => "1111111111111111", 006 => "0010010011100001", 007 => "0011011011010000", 
-008 => "0101100010101111", 009 => "1111111111111111", 010 => "1111111111111111", 011 => "1111111111111111", 
-012 => "0100100011000011", 013 => "1000000010001100", 014 => "0110110010100001", 015 => "1111111111111111", 
-016 => "0101111110110000", 017 => "0111011110011001", 018 => "1111111111111111", 019 => "0100101111000111", 
-020 => "1111111111111111", 021 => "1111111111111111", 022 => "1111111111111111", 023 => "0001100011111110", 
-024 => "1000011110010000", 025 => "0111001010100110", 026 => "0000000100011001", 027 => "0111011010100100", 
-028 => "0100001111011000", 029 => "1111111111111111", 030 => "1111111111111111", 031 => "0000101000010101", 
-032 => "0110000110111110", 033 => "1111111111111111", 034 => "0011001111101110", 035 => "0100111011010100", 
-036 => "1111111111111111", 037 => "0101100111001011", 038 => "1000111110010110", 039 => "1111111111111111", 
-040 => "1111111111111111", 041 => "0101111011001010", 042 => "1111111111111111", 043 => "1111111111111111", 
-044 => "1111111111111111", 045 => "0101101111010001", 046 => "0011000011111101", 047 => "1111111111111111", 
-048 => "0000111100100001", 049 => "0111110010110100", 050 => "0100110111100100", 051 => "0111101110110111", 
-052 => "0000001000110010", 053 => "1111111111111111", 054 => "0100100111101100", 055 => "1111111111111111", 
-056 => "1000011010110001", 057 => "1111111111111111", 058 => "1111111111111111", 059 => "1001101110011111", 
-060 => "1111111111111111", 061 => "1111111111111111", 062 => "0001010000101010", 063 => "1111111111111111", 
-064 => "0111110111000010", 065 => "1111111111111111", 066 => "1111111111111111", 067 => "0010000000100011", 
-068 => "0110011011011101", 069 => "1111111111111111", 070 => "1001110010101001", 071 => "1111111111111111", 
-072 => "1111111111111111", 073 => "0101011011110010", 074 => "1001011110110010", 075 => "0111010011010110", 
-076 => "0001111100101101", 077 => "1111111111111111", 078 => "1111111111111111", 079 => "1111111111111111", 
-080 => "1111111111111111", 081 => "1111111111111111", 082 => "1001010110111100", 083 => "1111111111111111", 
-084 => "1111111111111111", 085 => "0001000101000100", 086 => "1111111111111111", 087 => "1111111111111111", 
-088 => "1111111111111111", 089 => "1111111111111111", 090 => "1010001110110110", 091 => "1111111111111111", 
-092 => "0110000011111011", 093 => "1111111111111111", 094 => "1111111111111111", 095 => "1111111111111111", 
-096 => "0001111001000010", 097 => "1111111111111111", 098 => "0110100111111000", 099 => "1001010011001110", 
-100 => "1001101011001001", 101 => "1111111111111111", 102 => "0110111111110110", 103 => "0111001111110011", 
-104 => "0000010001100100", 105 => "1000111011011010", 106 => "1111111111111111", 107 => "1111111111111111", 
-108 => "1001001011011001", 109 => "1111111111111111", 110 => "1111111111111111", 111 => "0001001101011100", 
-112 => "0000110101100011", 113 => "1000000111101111", 114 => "1111111111111111", 115 => "1111111111111111", 
-116 => "1111111111111111", 117 => "1111111111111111", 118 => "0011011100111111", 119 => "0000011101110000", 
-120 => "1111111111111111", 121 => "1111111111111111", 122 => "1111111111111111", 123 => "1001100011100010", 
-124 => "0010100001010100", 125 => "1111111111111111", 126 => "1111111111111111", 127 => "1010101111010011", 
-128 => "1000010111111010", 129 => "0000100101111000", 130 => "1111111111111111", 131 => "0001101101101000", 
-132 => "1111111111111111", 133 => "1111111111111111", 134 => "0100000001000110", 135 => "1111111111111111", 
-136 => "1011101111001100", 137 => "1010010111100011", 138 => "1111111111111111", 139 => "0000110001111111", 
-140 => "0011100101010011", 141 => "0011101101010010", 142 => "1111111111111111", 143 => "0000010110001010", 
-144 => "1111111111111111", 145 => "0010011101101010", 146 => "1010110011100101", 147 => "1111111111111111", 
-148 => "0010111101100101", 149 => "1111111111111111", 150 => "1010110111101000", 151 => "1111111111111111", 
-152 => "0011111001011010", 153 => "1011110111011011", 154 => "1111111111111111", 155 => "1111111111111111", 
-156 => "1111111111111111", 157 => "1100110111001111", 158 => "1111111111111111", 159 => "1111111111111111", 
-160 => "1111111111111111", 161 => "0001000010010001", 162 => "1111111111111111", 163 => "1111111111111111", 
-164 => "0010101101111001", 165 => "0011101001101011", 166 => "1111111111111111", 167 => "1111111111111111", 
-168 => "1111111111111111", 169 => "1111111111111111", 170 => "0010001010001000", 171 => "1111111111111111", 
-172 => "1111111111111111", 173 => "1111111111111111", 174 => "1111111111111111", 175 => "1111111111111111", 
-176 => "1111111111111111", 177 => "0100101001100111", 178 => "1111111111111111", 179 => "1011100111111001", 
-180 => "0100011101101101", 181 => "1111111111111111", 182 => "1111111111111111", 183 => "0010111010001001", 
-184 => "1100000011110111", 185 => "1111111111111111", 186 => "1111111111111111", 187 => "0011100010000011", 
-188 => "1111111111111111", 189 => "0100110001110001", 190 => "1111111111111111", 191 => "1101010111101001", 
-192 => "0011110010000100", 193 => "0011010010001101", 194 => "1111111111111111", 195 => "1111111111111111", 
-196 => "1101001011110001", 197 => "0000011010111111", 198 => "0010100110011101", 199 => "0100010110000010", 
-200 => "0011010110010011", 201 => "1111111111111111", 202 => "1111111111111111", 203 => "1111111111111111", 
-204 => "1101111011101101", 205 => "1111111111111111", 206 => "1110011011100111", 207 => "1111111111111111", 
-208 => "0000100011001000", 209 => "1111111111111111", 210 => "0001110110110101", 211 => "1111111111111111", 
-212 => "1111111111111111", 213 => "1111111111111111", 214 => "1111111111111111", 215 => "1111111111111111", 
-216 => "0010010110110011", 217 => "1101110011111100", 218 => "1111111111111111", 219 => "0001011111000100", 
-220 => "1111111111111111", 221 => "0001110011000001", 222 => "0010011010111000", 223 => "1110101011110100", 
-224 => "0001101011000110", 225 => "1111111111111111", 226 => "0000001111011111", 227 => "0100000110100010", 
-228 => "1111111111111111", 229 => "1111111111111111", 230 => "1111111111111111", 231 => "1111111111111111", 
-232 => "1111111111111111", 233 => "1111111111111111", 234 => "1111111111111111", 235 => "1111111111111111", 
-236 => "0110111001111110", 237 => "0110001010001011", 238 => "0000111011100000", 239 => "0111010101111010", 
-240 => "1111111111111111", 241 => "0101000110100000", 242 => "1111111111111111", 243 => "1111111111111111", 
-244 => "1111111111111111", 245 => "1111111111111111", 246 => "0011000111000101", 247 => "0011110110111010", 
-248 => "0101000010101000", 249 => "1111111111111111", 250 => "1111111111111111", 251 => "0101110110011110", 
-252 => "1111111111111111", 253 => "0100111110101110", 254 => "0101011110100111",
-                            
-                            others => (OTHERS => '0')
-                            );
-begin
-    PROCESS (clk, rst)
-    BEGIN
-        IF rst = '1' THEN
-            contents <= (OTHERS => '0');
-        ELSIF (rising_edge(clk)) THEN 
-            contents <= LUT(to_integer(unsigned(address)));
+  -- Multiply by alpha in GF(2^8).
+  -- Primitive polynomial:
+  --   p(x) = x^8 + x^4 + x^3 + x^2 + 1
+  -- Hex representation: 0x11D.
+  -- Multiplying by alpha corresponds to shifting left.
+  -- If the old MSB was 1, the shift creates an x^8 term,
+  -- so we reduce modulo p(x) by XORing with 0x1D.
+  FUNCTION multiply_by_alpha(a : UNSIGNED(7 DOWNTO 0)) RETURN UNSIGNED IS
+    VARIABLE shifted_v : UNSIGNED(7 DOWNTO 0);
+  BEGIN
+    shifted_v := a(6 DOWNTO 0) & '0';
+
+    IF a(7) = '1' THEN
+      shifted_v := shifted_v XOR TO_UNSIGNED(16#1D#, 8);
+    END IF;
+
+    RETURN shifted_v;
+  END FUNCTION;
+
+
+  -- Build same table we've used earlier.
+  -- Input/index is a log/exponent.
+  -- Output is the concrete 8-bit GF(256) field element.
+  FUNCTION build_alpha_lut RETURN LUT8_type IS
+    VARIABLE lut_v : LUT8_type := (OTHERS => (OTHERS => '0'));
+    VARIABLE a_v   : UNSIGNED(7 DOWNTO 0) := TO_UNSIGNED(1, 8);
+  BEGIN
+    FOR log_i IN 0 TO 254 LOOP
+      lut_v(log_i) := STD_LOGIC_VECTOR(a_v);
+      a_v := multiply_by_alpha(a_v);
+    END LOOP;
+
+    RETURN lut_v;
+  END FUNCTION;
+
+
+  -- Build the "other" table we've also made earlier.
+  -- Input/index is the concrete 8-bit GF(256) field element interpreted as an integer address.
+  -- Output is the log/exponent.
+  FUNCTION build_log_lut RETURN LUT8_type IS
+    VARIABLE lut_v : LUT8_type := (OTHERS => (OTHERS => '0'));
+    VARIABLE a_v   : UNSIGNED(7 DOWNTO 0) := TO_UNSIGNED(1, 8);
+  BEGIN
+    FOR log_i IN 0 TO 254 LOOP
+      lut_v(TO_INTEGER(a_v)) := STD_LOGIC_VECTOR(TO_UNSIGNED(log_i, 8));
+      a_v := multiply_by_alpha(a_v);
+    END LOOP;
+
+    RETURN lut_v;
+  END FUNCTION;
+
+
+  -- Build table:
+  --   LUT(log(A)) = log(root1) & log(root2)
+  -- The roots are the two solutions to:
+  --   z^2 + z + A = 0
+  -- Equivalently, in characteristic 2:
+  --   A = z^2 + z
+  -- Since addition in GF(2^8) is XOR, this is:
+  --   A = z^2 XOR z
+  -- If no roots exist for a given A, the table entry remains x"FFFF".
+  -- remember that A is defined as:
+  -- A = (X*Y)/S_1^2, where X and Y are the field elements of the error positions.
+  -- We need the logarithm of X and Y, since they are the error positions.
+  FUNCTION build_roots_lut RETURN LUT16_type IS
+    VARIABLE lut_v : LUT16_type := (OTHERS => x"FFFF");
+
+    VARIABLE alpha_lut_v : LUT8_type := build_alpha_lut; -- This gives the field element from the log-value
+    VARIABLE log_lut_v   : LUT8_type := build_log_lut; -- This gives the log-value from the field element.
+
+    VARIABLE root_v           : UNSIGNED(7 DOWNTO 0); -- this is z
+    VARIABLE root_square_v    : UNSIGNED(7 DOWNTO 0); -- this is z^2
+    VARIABLE companion_v      : UNSIGNED(7 DOWNTO 0); -- in binary fields, if z is a root, then z+1 is also a root. This is z+1
+    VARIABLE A_v              : UNSIGNED(7 DOWNTO 0); -- This is the result of A=z^2+z
+
+    VARIABLE A_log_i          : INTEGER; -- This is log(A)
+    VARIABLE companion_log_i  : INTEGER; -- log(z+1)
+    VARIABLE square_log_i     : INTEGER; -- z=alpha^k => z^2=alpha^2k
+  BEGIN
+
+    -- The useful log values are 0..254 because alpha has order 255.
+	 -- Therefore we manually set the final entry to be 0
+    lut_v(255) := x"0000";
+
+    -- Try every possible non-zero root z = alpha^root_log_i.
+	 -- This is sometimes called Chien search.
+    FOR root_log_i IN 0 TO 254 LOOP
+
+      -- root_v = alpha^root_log_i
+		-- So root_v will be the field-element corresponding to the exponent we are trying
+      root_v := UNSIGNED(alpha_lut_v(root_log_i));
+
+      -- root_square_v = (alpha^root_log_i)^2 = alpha^(2*root_log_i mod 255)
+      square_log_i := (2 * root_log_i) MOD 255;
+      root_square_v := UNSIGNED(alpha_lut_v(square_log_i));
+
+      -- A = z^2 + z.
+      -- In GF(2^8), addition is XOR, and we've defined A = z+z^2:
+      A_v := root_square_v XOR root_v; -- now A is a specific field element.
+
+      -- If A = 0, log(A) is undefined, so we do not store it.
+		-- But all other cases we should handle, so a smart way is to just check if it is not equal to 0
+      IF A_v /= TO_UNSIGNED(0, 8) THEN
+        -- Alot of conversion here.
+		  -- At this point, A_v is 8-bit field element
+		  -- but we need log(A) as integer index
+		  -- so we first get the integer address corresponding to the field element
+		  -- then we check which index that field element is (the log-value).
+		  -- 	example: to_integer(A_v)=29 => log_lut_v(29)=alpha^8=> return 8 as integer.
+        A_log_i := TO_INTEGER(UNSIGNED(log_lut_v(TO_INTEGER(A_v))));
+
+        -- For z^2 + z + A = 0, if z is one root, then z + 1 is the other root (as mentioned)
+        -- In GF(2^8), +1 means XOR with 00000001, so:
+        companion_v := root_v XOR TO_UNSIGNED(1, 8);
+        -- Convert the second root from concrete 8-bit field element to its log/exponent (the index).
+		  -- This is done in the same way as we did above.
+        companion_log_i := TO_INTEGER(UNSIGNED(log_lut_v(TO_INTEGER(companion_v))));
+
+        -- Store only the first root pair found for this A.
+		  -- This is because the loop will later find that z+1 is also a solution for that A value
+		  -- So to make sure we don't overwrite or change the first root,
+		  -- we only write to the table, if it was "invalid" (value FFFF) in the first place.
+        IF lut_v(A_log_i) = x"FFFF" THEN
+          lut_v(A_log_i) :=
+            STD_LOGIC_VECTOR(TO_UNSIGNED(root_log_i, 8)) &
+            STD_LOGIC_VECTOR(TO_UNSIGNED(companion_log_i, 8));
+				
+			-- The result is a table that will have have the format:
+			-- 	LUT(log(A)) = [log(z1),log(z2 (which is z1+1))], where the log values are both 8 bits.
         END IF;
-    END PROCESS;
-    
-end architecture log_A_to_log_rootsOfA_tabel_arch;
 
---	Component log_A_to_log_rootsOfA_tabel is
---		port(address  : in  std_logic_vector(7 DOWNTO 0); -- memory address
---			  contents  : out std_logic_vector(15 DOWNTO 0); -- value
---			clk, rst  : in  std_logic 
---			);
---	end Component log_A_to_log_rootsOfA_tabel;
+      END IF;
 
---	???_tabel_for_step? : entity log_A_to_log_rootsOfA_tabel
---		PORT MAP(
---			address => ???,  
---			contents => ???, 
---			clk => clk, rst => rst 
---		);
-    
+    END LOOP;
+
+    RETURN lut_v;
+  END FUNCTION;
+
+
+  CONSTANT LUT : LUT16_type := build_roots_lut;
+
+BEGIN
+
+  PROCESS (clk, rst)
+  BEGIN
+    IF rst = '1' THEN
+      contents <= (OTHERS => '0');
+
+    ELSIF rising_edge(clk) THEN
+      contents <= LUT(TO_INTEGER(UNSIGNED(address)));
+
+    END IF;
+  END PROCESS;
+
+END ARCHITECTURE log_A_to_log_rootsOfA_tabel_arch;

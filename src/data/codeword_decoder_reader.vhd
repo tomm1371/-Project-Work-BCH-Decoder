@@ -4,7 +4,7 @@ USE ieee.numeric_std.ALL;
 USE work.codeword_decoder_pkg.ALL;
 
 
-ENTITY codeword_stream_reader IS
+ENTITY codeword_decoder_reader IS
     GENERIC (
         DATA_WIDTH     : POSITIVE := CODEWORD_WIDTH;
         ROM_DEPTH       : POSITIVE := CODEWORD_COUNT;
@@ -18,9 +18,9 @@ ENTITY codeword_stream_reader IS
         data_valid: OUT STD_LOGIC;
         done      : OUT STD_LOGIC
     );
-END ENTITY codeword_stream_reader;
+END ENTITY codeword_decoder_reader;
 
-ARCHITECTURE rtl OF codeword_stream_reader IS
+ARCHITECTURE rtl OF codeword_decoder_reader IS
     SIGNAL address : UNSIGNED(ROM_ADDR_WIDTH - 1 DOWNTO 0) := (OTHERS => '0');
     SIGNAL active : STD_LOGIC := '0';
 BEGIN

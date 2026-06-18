@@ -20,11 +20,11 @@ vlib work
 vmap work work
 
 # Compile design files
-vcom -2008 $project_root/src/encoder/deprecated/gf_mod_256.vhd
+#vcom -2008 $project_root/src/encoder/deprecated/gf_mod_256.vhd
 vcom -2008 $project_root/src/encoder/encoder.vhd
 
 # Compile testbench
-vcom -2008 $script_dir/bch_encoder_tb_256.vhd
+vcom -2008 $script_dir/encoder_tb.vhd
 
 # Start simulation
 vsim work.bch_encoder_tb_256

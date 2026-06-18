@@ -28,6 +28,13 @@ vsim.wlf
 *.vcd
 *.wlf
 wlft*
+sim/work/
+sim/transcript
+sim/*.wdo
+sim/*.mti
+sim/*.mpf
+sim/*.wlf
+sim/*.ini
 
 # Misc
 *.log

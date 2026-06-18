@@ -38,7 +38,12 @@ ARCHITECTURE RTL OF encoder IS
 		15 => "11110001111100110011100011110101011101001000000001011110010001101000010101000001001101001010101101011001001011101011011111100100010110100000011000001011111000100101101001001111111000101111100000101100001010001100110111100111010000101111101",
 		16 => "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
 	);
+
+	-- Internal registers
 	SIGNAL output_reg : STD_LOGIC;
+	SIGNAL data_reg : STD_LOGIC_VECTOR(238 DOWNTO 0);
+	signal parity_reg : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	signal even_parity_reg : STD_LOGIC;
 
 BEGIN
 	PROCESS (clk)
@@ -52,18 +57,16 @@ BEGIN
 				code_valid <= '0';
 				output_reg <= '0';
 			ELSE
-				-- Default
-				code_valid <= '0';
-				-- Step 3: register result - appears on output NEXT clock edge
-					IF (output_reg = '1') THEN
-						output_reg <= '0';
-						code_out <= data_in & bch_parity & even_parity;
-						code_valid <= '1'; -- goes high one cycle after data_valid
-					END IF;
+
+				-- Step 4: registered output send with valid pulse
+				IF (output_reg = '1') THEN
+					code_out <= data_reg & parity_reg & even_parity_reg;
+				ELSE 
+					code_out <= (OTHERS => '0');
+				END IF;
+
 
 				IF data_valid = '1' THEN
-
-					
 
 					-- Step 1: BCH parity via matrix
 					FOR parity_index IN 0 TO 15 LOOP
@@ -85,8 +88,13 @@ BEGIN
 						even_parity := even_parity XOR bch_parity(i);
 					END LOOP;
 
-					output_reg <= '1';
+					-- Step 3: register result 
+					parity_reg <= bch_parity;
+					even_parity_reg <= even_parity;
 				END IF;
+				data_reg <= data_in;
+				output_reg <= data_valid;
+				code_valid <= output_reg;
 			END IF;
 		END IF;
 	END PROCESS;

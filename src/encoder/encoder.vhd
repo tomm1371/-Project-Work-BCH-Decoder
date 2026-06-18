@@ -40,10 +40,10 @@ ARCHITECTURE RTL OF encoder IS
 	);
 
 	-- Internal registers
-	SIGNAL output_reg : STD_LOGIC;
-	SIGNAL data_reg : STD_LOGIC_VECTOR(238 DOWNTO 0);
-	signal parity_reg : STD_LOGIC_VECTOR(15 DOWNTO 0);
-	signal even_parity_reg : STD_LOGIC;
+	SIGNAL output_reg : STD_LOGIC := '0';
+	SIGNAL data_reg : STD_LOGIC_VECTOR(238 DOWNTO 0) := (OTHERS => '0');
+	signal parity_reg : STD_LOGIC_VECTOR(15 DOWNTO 0):= (OTHERS => '0');
+	signal even_parity_reg : STD_LOGIC := '0';
 
 BEGIN
 	PROCESS (clk)
@@ -54,8 +54,11 @@ BEGIN
 		IF RISING_EDGE(clk) THEN
 			IF rst = '1' THEN
 				code_out <= (OTHERS => '0');
-				code_valid <= '0';
 				output_reg <= '0';
+                code_valid <= '0';
+                data_reg <= (OTHERS => '0');
+	            parity_reg <= (OTHERS => '0');
+	            even_parity_reg  <= '0';
 			ELSE
 
 				-- Step 4: registered output send with valid pulse
@@ -93,8 +96,9 @@ BEGIN
 					even_parity_reg <= even_parity;
 				END IF;
 				data_reg <= data_in;
-				output_reg <= data_valid;
+				
 				code_valid <= output_reg;
+                output_reg <= data_valid;
 			END IF;
 		END IF;
 	END PROCESS;

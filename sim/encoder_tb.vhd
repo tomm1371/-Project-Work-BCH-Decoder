@@ -71,7 +71,7 @@ BEGIN
             WAIT FOR CLK_PERIOD * 2.5;
 
             rom_init_complete := true;
-            --readline(input_file, line_in); -- ignore the first line (header)
+            readline(input_file, line_in); -- ignore the first line (header)
             while not endfile(input_file) loop
                 readline(input_file, line_in);            
                 read(line_in, vec);

@@ -34,7 +34,8 @@ ARCHITECTURE decoder_tb_arch OF decoder_tb IS
 	SIGNAL code_validTB : STD_LOGIC;
 	--SIGNAL errors_foundTB : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
-	file input_file : TEXT open READ_MODE is "TestFiles/encoderOutput.txt";
+	--file input_file : TEXT open READ_MODE is "TestFiles/encoderOutput.txt";
+	file input_file : TEXT open READ_MODE is "TestFiles/codes_with_errors.txt";
 	--file input_file : TEXT open READ_MODE is "ImageTesting/encodedParrotErrors.txt";
     file output_file : TEXT open WRITE_MODE is "TestFiles/decoderOutput.txt";
 
@@ -74,106 +75,14 @@ BEGIN
 			readline(input_file, line_in); 
 			next when line_in'length = 0;           
 			--read(line_in, vec);
-			read(line_in, vec);
+			hread(line_in, vec);
 			data_validTB <= '1';
 			data_inTB <= vec;
 			WAIT FOR CLK_PERIOD;
 		end loop;
 		data_validTB <= '0';
 	wait;
-		--readline(Fin, current_readLine); --ingore the first line of the file
-		/* resetTB <= '1';
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					resetTB <= '0';
 		
-		            clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		            9
-					10
-					data_inTB    <=   x"A0000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
-		            data_validTB <= '1';
-		
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					data_inTB <= x"80000000_00000000_00010000_00000000_00000000_00000000_00000000_00016F63";
-					
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		
-					data_inTB <= x"00000000_00000000_00000000_00000000_00000000_00000000_00000000_0002DEC7";
-		
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		
-					data_inTB <= x"00000000_00070000_00000000_00000000_00000000_00000000_00000000_0002DEC7"; */
-
-		--while (not endfile(Fin)) loop
-
-		--readline(Fin, current_readLine);
-
-		--hread(current_readLine, readField0); -- do this work?
-		--read(current_readLine, readField1);
-
-		--data_inTB       <= readField0;
-		--data_validTB <= readField1;
-
-		--clockTB <= not clockTB;
-		--wait for half_a_clk ns;
-		--clockTB <= not clockTB;
-		--wait for half_a_clk ns;
-		--write(current_writeLine, string'("Test with INPUT: Up="));
-		--write(current_writeLine, goUpTB);
-		--write(current_writeLine, string'(" Reset="));
-		--write(current_writeLine, resetTB);
-
-		--write(current_writeLine, string'(" OUTPUT: count="));
-		--write(current_writeLine, countTB);
-		--if countTB = desiredCountTB 
-		--then 
-		--passed test
-		--write(current_writeLine, string'("    TEST: OK"));
-
-		--else
-		--failed test
-		--write(current_writeLine, string'("    TEST: FAILED "));
-
-		--writeline(Fout, current_writeLine);
-		--write(current_writeLine, string'("TEST ABOVE EXPECTED: count="));
-		--write(current_writeLine, desiredCountTB);
-
-		--end if;
-
-		--writeline(Fout, current_writeLine);
-
-		--end loop;
-		/* clockTB <= not clockTB;
-					wait for half_a_clk;
-					clockTB <= not clockTB;
-					wait for half_a_clk;
-		
-		            data_inTB    <= (OTHERS => '0');
-					data_validTB <= '0';
-		
-		            while true loop
-		                clockTB <= not clockTB;
-						wait for half_a_clk;
-		--data_inTB    <= x"00050000_00000000_00000000_00000000_00000000_00000000_00000000_00000000";0
-		--write(current_writeLine, string'("TEST OK/GOD = "));
-		--writeline(current_writeLine, cksum_ok_cntTB)
-		--write(current_writeLine, string'("TEST KO/BAD ="));
-		--writeline(current_writeLine, cksum_ko_cntTB)*/
-
 	END PROCESS;
 	
 	capture_output : PROCESS

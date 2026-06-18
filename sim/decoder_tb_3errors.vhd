@@ -37,7 +37,7 @@ ARCHITECTURE decoder_tb_3errors_arch OF decoder_tb_3errors IS
 
 	--file input_file : TEXT open READ_MODE is "TestFiles/encoderOutput.txt";
 	
-    file output_file : TEXT open WRITE_MODE is "TestFiles/decoderOutput.txt";
+    file output_file : TEXT open WRITE_MODE is "TestFiles/decoder3ErrorTestOutput.txt";
 
 BEGIN
 
@@ -72,7 +72,9 @@ BEGIN
 		WAIT FOR CLK_PERIOD * 2;
 
 		data_validTB <= '1';
-		eVec1 := x"000000000_00000000_00000000_00000000_00000000_00000000_00000000_00000001";
+		eVec1 := x"0_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000001";
+		--These nested loops test the decoder on every error pattern with 3 errors
+		-- there are 2.763.520 different ways to do this, so making separate data files is not a good idea
 		while (eVec1(256) = '0') loop
 			eVec2 := eVec1(258 downto 0) & '0' ;
 
@@ -94,63 +96,30 @@ BEGIN
 		data_inTB <= (OTHERS => '0');
 		data_validTB <= '0';
 	wait;
-		--readline(Fin, current_readLine); --ingore the first line of the file
-		
-
-		--while (not endfile(Fin)) loop
-
-		--readline(Fin, current_readLine);
-
-		--hread(current_readLine, readField0); -- do this work?
-		--read(current_readLine, readField1);
-
-		--data_inTB       <= readField0;
-		--data_validTB <= readField1;
-
-		--clockTB <= not clockTB;
-		--wait for half_a_clk ns;
-		--clockTB <= not clockTB;
-		--wait for half_a_clk ns;
-		--write(current_writeLine, string'("Test with INPUT: Up="));
-		--write(current_writeLine, goUpTB);
-		--write(current_writeLine, string'(" Reset="));
-		--write(current_writeLine, resetTB);
-
-		--write(current_writeLine, string'(" OUTPUT: count="));
-		--write(current_writeLine, countTB);
-		--if countTB = desiredCountTB 
-		--then 
-		--passed test
-		--write(current_writeLine, string'("    TEST: OK"));
-
-		--else
-		--failed test
-		--write(current_writeLine, string'("    TEST: FAILED "));
-
-		--writeline(Fout, current_writeLine);
-		--write(current_writeLine, string'("TEST ABOVE EXPECTED: count="));
-		--write(current_writeLine, desiredCountTB);
-
-		--end if;
-
-		--writeline(Fout, current_writeLine);
-
-		--end loop;
 
 	END PROCESS;
+
 	
 	capture_output : PROCESS
         variable output_line : line;
+		variable testedLines : INTEGER := 0;
     BEGIN
         WAIT UNTIL RISING_EDGE(clockTB);
 		
 
         if code_validTB = '1' then
+			testedLines := testedLines + 1;
 			if errors_foundTB /= "11" then 
             	hwrite(output_line, code_outTB(255 DOWNTO 0));
 
             	writeline(output_file, output_line);
 			end if;
+		elsif testedLines /= 0 then 
+			write(output_line, testedLines);
+			writeline(output_file, output_line);
+			testedLines := 0;
         end if;
     END PROCESS;
+
+
 END ARCHITECTURE decoder_tb_3errors_arch;

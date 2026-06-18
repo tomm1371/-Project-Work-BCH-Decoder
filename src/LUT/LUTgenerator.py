@@ -208,4 +208,4 @@ generateFile("log_a_to_a_tabel", range((2**M)-1), logTabel(),  entriesPerLine=8)
 generateFile("log_a_to_a_pow3_tabel", range((2**M)-1), logTabel(exponent=3), entriesPerLine=8)   
 
 #print(logTabel())
-printLines(tabelOverA(logTabel(), g, justRoots=True))
+#printLines(tabelOverA(logTabel(), g, justRoots=True))

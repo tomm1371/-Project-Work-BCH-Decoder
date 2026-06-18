@@ -3,8 +3,8 @@
 #   do sim/DAT_decoderTB.do
 
 # Resolve the project directories explicitly.
-set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
-# set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
+# set project_root C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder
+set project_root C:/Users/david/Desktop/-Project-Work-BCH-Decoder
 set script_dir $project_root/sim
 
 cd $script_dir
@@ -15,12 +15,6 @@ if {![file exists modelsim.ini]} {
 	vmap -c
 }
 
-#proc call_python {p_r} {
-#	set python C:/Users/david/AppData/Local/Microsoft/WindowsApps/python3.11.exe
-#    set output [exec $python $p_r/src/TestFiles/test.py]
-#	#set output [exec $p_r/src/TestFiles/test.py]
-#    puts $output
-#}
 
 # Create and map the work library
 vlib work
@@ -44,6 +38,5 @@ vsim work.decoder_tb
 add wave -recursive *
 
 # Run simulation
-run 7000 ns
-
-# call_python {$project_root}
+#for testing all correctable codewords
+run 660000 ns 

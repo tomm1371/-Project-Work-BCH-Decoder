@@ -5,7 +5,7 @@ USE ieee.numeric_std.ALL;
 
 ENTITY decoder IS
 	GENERIC (
-		M : INTEGER := 8; -- 2**m = length
+		M : INTEGER := 8; -- 2**m = length of codeword
 		T : INTEGER := 2); -- error correction capability
 
 	PORT (
@@ -13,9 +13,9 @@ ENTITY decoder IS
 		data_in : IN STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0);
 		data_valid : IN STD_LOGIC;
 		
-		code_out : OUT STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0);
-		code_valid : OUT STD_LOGIC;
-		errors_found : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
+		code_out : OUT STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0); -- corrected codeword
+		code_valid : OUT STD_LOGIC; -- is 1  when a corrected codeword is ready.
+		errors_found : OUT STD_LOGIC_VECTOR(1 DOWNTO 0) 
 	);
 END ENTITY;
 
@@ -24,6 +24,7 @@ ARCHITECTURE RTL OF decoder IS
 	----------------------| COMPONENTS |----------------------
 	--========================================================
 
+	-- a^i => i
 	Component a_to_log_a_tabel is
 		port(address  : in  std_logic_vector(7 DOWNTO 0); -- memory address
 			contents  : out std_logic_vector(7 DOWNTO 0); -- value
@@ -31,6 +32,7 @@ ARCHITECTURE RTL OF decoder IS
 			);
 	end Component a_to_log_a_tabel;
 
+	-- a => a^3
 	Component a_to_a_pow3_tabel is
 		port(address  : in  std_logic_vector(7 DOWNTO 0); -- memory address
 			contents  : out std_logic_vector(7 DOWNTO 0); -- value
@@ -38,6 +40,7 @@ ARCHITECTURE RTL OF decoder IS
 			);
 	end Component a_to_a_pow3_tabel;
 
+	--log(A) => [log(z1),log(z2)] (8 bit each).
 	Component log_A_to_log_rootsOfA_tabel is
 		port(address  : in  std_logic_vector(7 DOWNTO 0);  -- memory address
 			contents  : out std_logic_vector(15 DOWNTO 0); -- value
@@ -45,6 +48,7 @@ ARCHITECTURE RTL OF decoder IS
 			);
 	end Component log_A_to_log_rootsOfA_tabel;
 
+	-- Creates bit-masks used to flip the errors
 	Component one_hot_encoder IS 
 		PORT (
 		clk, rst : IN STD_LOGIC;
@@ -53,6 +57,7 @@ ARCHITECTURE RTL OF decoder IS
 		);
 	END Component one_hot_encoder;
 
+	-- The syndrome calculator calculates the syndromes (S1, S3) and the parity of data
 	Component syndrome_calculator IS
 		PORT (
 		clk, rst : IN STD_LOGIC;
@@ -72,25 +77,28 @@ ARCHITECTURE RTL OF decoder IS
 	Constant FINAL_ARRAY_INDEX : INTEGER  := 11;
 
 	--all these arrays just pass values to the next step, after they are initialised
+	--this allows for starting a new calculation every clk
 	TYPE S1_array_t IS ARRAY (1 TO 2) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 	TYPE S3_array_t IS ARRAY (1 TO 2) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
     SIGNAL S1_array : S1_array_t     := (OTHERS => (OTHERS => '0'));
     SIGNAL S3_array : S3_array_t     := (OTHERS => (OTHERS => '0'));
 	SIGNAL S1_array0, S3_array0 : STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 
-	TYPE log_S1_array_t IS ARRAY (3 TO 11) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
+	TYPE log_S1_array_t IS ARRAY (3 TO 9) of STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
 	SIGNAL log_S1_array : log_S1_array_t := (OTHERS => (OTHERS => '0'));
 	SIGNAL log_S1_array2 : STD_LOGIC_VECTOR(M - 1 DOWNTO 0);
-
+	
+	-- Enumeration type for the "type" of error(s) the BCH codeword contains. (excluding parity)
 	TYPE error_count_type is (
 		NO_ERRORS,
 		ONE_ERROR,
-		TWO_ERRORS,
+		TWO_OR_MORE_ERRORS,
 		INVALID
 	);
 	TYPE error_count_array_t IS ARRAY (3 to FINAL_ARRAY_INDEX) of error_count_type;
 	SIGNAL error_count_array : error_count_array_t := (OTHERS => INVALID);
-
+	
+	--passed from syndrome calculator
 	TYPE messages_t IS ARRAY (1 to FINAL_ARRAY_INDEX) of STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
 	SIGNAL messages : messages_t  := (OTHERS => (OTHERS => '0'));
 	SIGNAL messages0 : STD_LOGIC_VECTOR(2**M -1 DOWNTO 0);
@@ -114,14 +122,15 @@ ARCHITECTURE RTL OF decoder IS
 		--get back to unsigned length 8 by adding 255 (if negative)
 	SIGNAL step4, step6, minus_log_pow2_S1, minus_log_S1 : STD_LOGIC_VECTOR(M DOWNTO 0) := (OTHERS => '0');
 
-	--log values with room for overflow (result of addition)
+	--log values of error locations with room for overflow (result of addition)
 		--get back to length 8 by adding -255 (if >= 255)
 	SIGNAL error_l1, error_l2 : STD_LOGIC_VECTOR(M DOWNTO 0) := (OTHERS => '0');
 
-	SIGNAL error_location1, error_location2 : STD_LOGIC_VECTOR(M-1 DOWNTO 0) := (OTHERS => '0');
-	
+	-- these will contain the one-hot masks used to correct errors in the BCH codeword.
 	TYPE error_vectors_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(2**M - 2 DOWNTO 0);
 	SIGNAL error_vectors : error_vectors_t;
+
+	-- These are the inputs to the one-hot-encoders to create the bit-masks.
 	TYPE find_error_vectors_of_this_t IS ARRAY (0 to 1) of STD_LOGIC_VECTOR(M-1 DOWNTO 0);
 	SIGNAL find_error_vectors_of_this : find_error_vectors_of_this_t := (OTHERS => (OTHERS => '1'));
 
@@ -220,7 +229,7 @@ BEGIN
 			END LOOP;
 			S3_array(1) <= S3_array0;
 
-			for i in 3 TO 10 LOOP
+			for i in 3 TO 8 LOOP
 				log_S1_array(i+1) <= log_S1_array(i);
 			END LOOP;
 			log_S1_array(3) <= log_S1_array2;
@@ -233,6 +242,7 @@ BEGIN
 				messages(i+1) <= messages(i);
 			END LOOP;
 			messages(1) <= messages0;
+			--NOTE: messages is longer than this, but the last indexes are passed 
 
 			data_out_valid(2 to FINAL_ARRAY_INDEX) <= data_out_valid(1 to FINAL_ARRAY_INDEX-1);
 			data_out_valid(1) <= data_out_valid0;
@@ -263,28 +273,24 @@ BEGIN
 			elsif (step_array(2) = x"00") THEN 
 				error_count_array(3) <= ONE_ERROR;
 			else
-				error_count_array(3) <= TWO_ERRORS;
+				error_count_array(3) <= TWO_OR_MORE_ERRORS; 
 			END IF;
 			  
 			--twos compliment of log_S1_array2
 			minus_log_S1 <= std_logic_vector(unsigned(not ('0' & log_S1_array2)) + 1);
 
+			--set step_array(3) to log(S1**3 xor S3)
+			--step_array(3) <= a_to_log_a_tabel(step_array(2))
+
 			--step 4 ==============================
 			-- divide by S1 (-log_S1) 
 
+			--compute log(sigma_1) = log((S1**3+S3)/S1) = log(S1**3+S3)-log(S1),
             step4 <= std_logic_vector(unsigned('0' & step_array(3)) + unsigned(minus_log_S1)); --step4 has length 9
 			
-			--multiply by 2 (shift left), and ensure under 255, if over add -255
+			--multiply by 2 (shift left), and ensure under 255, if over add -255 (-255 = 1)
 			--following works assuming log_S1_array(3) < x"FF" (it always is)
 			log_pow2_S1 <= (log_S1_array(3)(M-2 downto 0) & log_S1_array(3)(M-1)); 
-			
-			--can also be written as:
-
-				--IF log_S1_array(3)(M-1) = '1' then -- multiply by 2 (shift left), and ensure under 255, if over add -255
-				--	log_pow2_S1 <= (log_S1_array(3)(M-2 downto 0) & "1");
-				--else
-				--	log_pow2_S1 <= (log_S1_array(3)(M-2 downto 0) & "0");
-				--end IF;
 
 			--step 5 ==============================
 			--ensure result from previous step is >= 0
@@ -313,24 +319,24 @@ BEGIN
 			end IF;
 
 			--step 8 ==============================
-			--find roots from tabel
+			--find roots from tabel using log_A
 
 			--log_roots = log_A_to_log_rootsOfA(log_A)
 				--root1 = log_roots(15 downto 8);
 				--root2 = log_roots( 7 downto 0);
 
-			--if log_roots = x"FFFF" there is more than 2 errors, and the errors should NOT be corrected
+			--if log_roots = x"FFFF" there is more than 2 errors, and the errors can NOT be corrected
 
 			--step 9 ==============================
 			--mult potential tabel entries with S1 (add log_S1)
 
-			if (log_roots(15 downto 8) /= x"FF") then --if there is an error * S1
+			if (log_roots(15 downto 8) /= x"FF") then --if there is an error * S1 (+ log(S1))
 				error_l1 <= std_logic_vector(unsigned('0'&log_roots(15 downto 8)) + unsigned('0'&log_S1_array(8)));
 			else
 				error_l1 <= ('1' & x"FF"); --the invalid error position
 			end if;
 
-			if (log_roots( 7 downto 0) /= x"FF") then --if there is an error * S1
+			if (log_roots( 7 downto 0) /= x"FF") then --if there is an error * S1 (+ log(S1))
 				error_l2 <= std_logic_vector(unsigned('0'&log_roots( 7 downto 0)) + unsigned('0'&log_S1_array(8)));
 			else
 				error_l2 <= ('1' & x"FF"); --the invalid error position
@@ -338,19 +344,19 @@ BEGIN
 
 			--step 10 ==============================
 
-			--NOTE: error_locations are either 0-254 or 255
+			--NOTE: find_error_vectors_of_this(x) is either 0-254 or 255
 			-- 255 (x"FF") means no correctable error! (there are 3 or more errors)
-			-- 0-254 is signal to correct the error at this position (excluding parity)
+			-- 0-254 is a signal to correct the error at this position (excluding parity)
 
 
-			--one hot encoding of error_l1 if there is 2 errors
-			if (error_count_array(9) = TWO_ERRORS) and (message_parity(9) = '0') then --if 2+ errors and there is an even error count
+			--one hot encoding of error_l1 if there are 2 errors
+			if (error_count_array(9) = TWO_OR_MORE_ERRORS) and (message_parity(9) = '0') then --if 2+ errors and there is an even error count
 				IF ((error_l1(M) = '1') xor error_l1(M-1 downto 0) = x"FF") then -- ensure under 255, if over or equal, subtract 255
 					
 					--x"01" = (not 255)+1 = -255 
 					find_error_vectors_of_this(0) <= std_logic_vector(unsigned(error_l1(M-1 downto 0))+1); 
 				
-				else
+				else -- (error_l1 = all 1's) or (error_l1 < 255)
 					find_error_vectors_of_this(0) <= error_l1(M-1 downto 0);
 				end IF;
 				
@@ -359,15 +365,14 @@ BEGIN
 			end if;
 
 
-			--one hot of error2
 			--one hot encoding of error_l2 or S1 if there is only one error
-			if (error_count_array(9) = TWO_ERRORS) and (message_parity(9) = '0') then --2 (or more) errors and even error count
+			if (error_count_array(9) = TWO_OR_MORE_ERRORS) and (message_parity(9) = '0') then --2 (or more) errors and even error count
 				IF ((error_l2(M) = '1') xor (error_l2(M-1 downto 0) = x"FF")) then -- ensure under 255, if over or equal, subtract 255
 
 					--x"01" = (not 255)+1 = -255 
 					find_error_vectors_of_this(1) <= std_logic_vector(unsigned(error_l2(M-1 downto 0))+1);
 					
-				else
+				else --(error_l2 = all 1's) or (error_l2 < 255)
 					find_error_vectors_of_this(1) <= error_l2(M-1 downto 0); 
 				end IF;
 
@@ -382,24 +387,20 @@ BEGIN
 			--one hot of error1 and error2, flip parity if relevant
 			
 
-			--if there is exactly 1 error and the parity of the message is even
-				--assume the parity bit is an error
-
-			--if there is no errors but the parity is wrong, 
-				--flip the parity bit
+			--this catches errors in the parity bit and fixes them
 			IF (((error_count_array(10) = ONE_ERROR) and (message_parity(10) = '0')) or 
 				((error_count_array(10) = NO_ERRORS) and (message_parity(10) = '1'))) THEN
 
 				messages(11)(0) <= not messages(10)(0); --flip parity bit
 			ELSE
-				messages(11)(0) <= messages(10)(0); --pass parity bit
+				messages(11)(0) <= messages(10)(0); --don't change parity bit
 			END IF;
 			--pass the rest of the message along
 			messages(11)(2**M-1 downto 1) <= messages(10)(2**M-1 downto 1);
 
 			
 			--step 12 ==============================
-			--flip error1 and error2			
+			--flip error1 and error2,			
 			--output the corrected message and the errors found
 			code_out <= (messages(FINAL_ARRAY_INDEX)(2**M-1 downto 1) xor ((error_vectors(0)) or (error_vectors(1)))) & messages(FINAL_ARRAY_INDEX)(0);
 
@@ -407,17 +408,25 @@ BEGIN
 
 			if (error_count_array(FINAL_ARRAY_INDEX) = NO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '0') then
 				errors_found <= "00"; --0
+				--input is valid codeword,
+				--output is valid codeword
 
 			elsif ((error_count_array(FINAL_ARRAY_INDEX) = NO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '1') or 
 				   (error_count_array(FINAL_ARRAY_INDEX) = ONE_ERROR and message_parity(FINAL_ARRAY_INDEX) = '1')) then
 				errors_found <= "01"; --1
+				--input had 1 error,
+				--output is valid codeword
 
 			elsif ((error_count_array(FINAL_ARRAY_INDEX) = ONE_ERROR and message_parity(FINAL_ARRAY_INDEX) = '0') or 
-				   (error_count_array(FINAL_ARRAY_INDEX) = TWO_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '0')) then
+				   (error_count_array(FINAL_ARRAY_INDEX) = TWO_OR_MORE_ERRORS and message_parity(FINAL_ARRAY_INDEX) = '0')) then
 				errors_found <= "10"; --2
+				--input had 2 errors,
+				--output is valid codeword
 
 			else 
-				errors_found <= "11"; --3 or more
+				errors_found <= "11"; --3 or more / invalid
+				--input had more than 2 errors,
+				--output is the same as input, and therefore NOT a valid codeword!
 			end if;
 			
 		END IF;

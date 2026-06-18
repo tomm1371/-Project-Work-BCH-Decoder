@@ -45,4 +45,4 @@ vsim work.decoder_tb_3errors
 
 # Run simulation
 #run 1 ms
-run 85 ms
+run 60 ms

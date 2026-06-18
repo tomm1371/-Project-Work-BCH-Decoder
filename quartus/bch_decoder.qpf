@@ -19,14 +19,16 @@
 #
 # Quartus Prime
 # Version 20.1.1 Build 720 11/11/2020 SJ Lite Edition
-# Date created = 16:44:30  June 17, 2026
+# Date created = 12:29:04  June 18, 2026
 #
 # -------------------------------------------------------------------------- #
 
 QUARTUS_VERSION = "20.1"
-DATE = "16:44:30  June 17, 2026"
+DATE = "12:29:04  June 18, 2026"
 
 # Revisions
 
+PROJECT_REVISION = "bch_de10lite_encoder_product"
+PROJECT_REVISION = "bch_de10lite_decoder_product"
 PROJECT_REVISION = "bch_de10lite_decoder"
 PROJECT_REVISION = "bch_de10lite_encoder"

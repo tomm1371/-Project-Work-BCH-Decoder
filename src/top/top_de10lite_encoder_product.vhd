@@ -18,6 +18,7 @@ ARCHITECTURE rtl OF top_de10lite_encoder IS
     SIGNAL data_valid : STD_LOGIC := '0';
     SIGNAL code_out : STD_LOGIC_VECTOR(255 DOWNTO 0) := (OTHERS => '0');
     SIGNAL code_valid : STD_LOGIC := '0';
+    SIGNAL busy : STD_LOGIC := '0';
 
     -- Signals for controlling the codeword stream reader and key synchronization
     SIGNAL reader_done : STD_LOGIC := '0';
@@ -25,7 +26,7 @@ ARCHITECTURE rtl OF top_de10lite_encoder IS
     SIGNAL key1_sync_1 : STD_LOGIC := '1';
     SIGNAL reader_start : STD_LOGIC := '0';
     SIGNAL total_encoded : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
-    
+
     -- map hex to 7-seg for visualization
     FUNCTION hex_to_7seg(hex : STD_LOGIC_VECTOR(3 DOWNTO 0)) RETURN STD_LOGIC_VECTOR IS
         VARIABLE seg : STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -55,7 +56,7 @@ ARCHITECTURE rtl OF top_de10lite_encoder IS
 BEGIN
 
     -- Instantiate the codeword stream reader to read codewords from ROM
-    reader_inst : ENTITY work.codeword_encoder_reader
+    reader_inst : ENTITY work.codeword_encoder_product_reader
         GENERIC MAP(
             DATA_WIDTH => CODEWORD_WIDTH,
             ROM_DEPTH => CODEWORD_COUNT,
@@ -65,6 +66,7 @@ BEGIN
             clk => MAX10_CLK1_50,
             rst => NOT KEY(0),
             start => reader_start,
+            busy => busy,
             data_out => data_in,
             data_valid => data_valid,
             done => reader_done
@@ -85,12 +87,13 @@ BEGIN
     END PROCESS;
 
     -- Instantiate the encoder
-    encoder_inst : ENTITY work.encoder
+    encoder_inst : ENTITY work.encoder_product
         PORT MAP(
             clk => MAX10_CLK1_50,
             rst => NOT KEY(0),
             data_in => data_in,
             data_valid => data_valid,
+            busy => busy,
             code_out => code_out,
             code_valid => code_valid
         );

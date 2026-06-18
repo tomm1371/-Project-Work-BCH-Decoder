@@ -1,6 +1,8 @@
 # Usage
 # python tools/txt_to_rom.py sim/TestFiles/<file>.txt --target encoder
+# python tools/txt_to_rom.py sim/TestFiles/<file>.txt --target encoder --product
 # python tools/txt_to_rom.py sim/TestFiles/<file>.txt --target decoder
+# python tools/txt_to_rom.py sim/TestFiles/<file>.txt --target decoder --product
 """Convert a text file of bitstrings into a VHDL codeword package.
 
 The input is expected to contain one codeword per line using either:
@@ -8,9 +10,27 @@ The input is expected to contain one codeword per line using either:
 - raw hexadecimal digits.
 
 Blank lines and lines starting with # or -- are ignored.
-The script writes a VHDL package containing the codewords as a ROM constant
-array. Use --target encoder or --target decoder to control the output package
-and type names, and the output file destination.
+
+Validation rules:
+
+    --target encoder
+        Each word should be 239 bits.
+        - Too short : zero-pad on the RIGHT  (warning printed)
+        - Too long  : trim from the RIGHT    (warning printed)
+        Line count  : any number accepted.
+
+    --target encoder --product
+        Same width handling as above (pad/trim with warnings).
+        Line count  : MUST be a multiple of 239. If not, zero-word lines are
+                    appended until the next multiple of 239 (warning printed).
+    
+    --target decoder
+        Each word MUST be exactly 256 bits -- error and no output if not.
+        Line count  : any number accepted.
+
+    --target decoder --product
+        Each word MUST be exactly 256 bits -- error and no output if not.
+        Line count  : MUST be exactly 256 -- error and no output if not.
 """
 
 from __future__ import annotations
@@ -18,11 +38,15 @@ from __future__ import annotations
 import argparse
 import math
 import re
+import sys
 from pathlib import Path
 
 
 BIN_RE = re.compile(r"^[01]+$")
 HEX_RE = re.compile(r"^[0-9A-Fa-f]+$")
+
+ENCODER_WIDTH = 239
+DECODER_WIDTH = 256
 
 
 def ceil_log2(value: int) -> int:
@@ -56,31 +80,86 @@ def parse_codewords(path: Path) -> tuple[list[str], str]:
     return words, data_kind
 
 
-def normalize_words(words: list[str], width: int | None, data_kind: str) -> tuple[list[str], int]:
-    if width is None:
-        if data_kind == "hex":
-            width = max(len(word) for word in words) * 4
-        else:
-            width = max(len(word) for word in words)
-
+def normalize_words(words: list[str], data_kind: str) -> list[str]:
+    """Convert all words to binary strings."""
     normalized: list[str] = []
     for word in words:
         if data_kind == "hex":
             bits = bin(int(word, 16))[2:].zfill(len(word) * 4)
         else:
             bits = word
-        if len(bits) > width:
-            raise ValueError(f"Word {word!r} is wider than requested width {width}")
-        normalized.append(bits.zfill(width))
+        normalized.append(bits)
+    return normalized
 
-    return normalized, width
+
+def validate_encoder(words: list[str], product: bool) -> list[str]:
+    """
+    Encoder rules:
+    - Words too short : zero-pad right, warn
+    - Words too long  : trim right, warn
+    - Line count      : any if not product; must be multiple of 239 if product,
+                        zero-word rows appended to reach next multiple (warn)
+    """
+    validated: list[str] = []
+    pad_count  = 0
+    trim_count = 0
+
+    for i, word in enumerate(words):
+        w = len(word)
+        if w < ENCODER_WIDTH:
+            validated.append(word.zfill(ENCODER_WIDTH))
+            pad_count += 1
+        elif w > ENCODER_WIDTH:
+            validated.append(word[w - ENCODER_WIDTH:])  # keep rightmost bits
+            trim_count += 1
+        else:
+            validated.append(word)
+
+    if pad_count:
+        print(f"Warning: {pad_count} word(s) were shorter than {ENCODER_WIDTH} bits and were zero-padded.", file=sys.stderr)
+    if trim_count:
+        print(f"Warning: {trim_count} word(s) were longer than {ENCODER_WIDTH} bits and were trimmed.", file=sys.stderr)
+
+    if product:
+        remainder = len(validated) % ENCODER_WIDTH
+        if remainder != 0:
+            pad_words = ENCODER_WIDTH - remainder
+            validated.extend(["0" * ENCODER_WIDTH] * pad_words)
+            print(
+                f"Warning: line count {len(validated) - pad_words} is not a multiple of {ENCODER_WIDTH}. "
+                f"Appended {pad_words} zero-word(s) to reach {len(validated)} lines.",
+                file=sys.stderr,
+            )
+
+    return validated
+
+
+def validate_decoder(words: list[str], product: bool) -> list[str]:
+    """
+    Decoder rules:
+    - Every word MUST be exactly 256 bits -- error and no output if any are wrong.
+    - Line count: any if not product; must be exactly 256 if product -- error if not.
+    """
+    for i, word in enumerate(words):
+        if len(word) != DECODER_WIDTH:
+            raise ValueError(
+                f"Line {i + 1}: decoder word is {len(word)} bits but must be exactly "
+                f"{DECODER_WIDTH} bits. No output written -- verify your data."
+            )
+
+    if product:
+        if len(words) % DECODER_WIDTH != 0:
+            raise ValueError(
+                f"Decoder product requires exactly {DECODER_WIDTH} lines but got {len(words)}. "
+                f"No output written."
+            )
+
+    return words
 
 
 def write_package(output_path: Path, words: list[str], width: int, target: str) -> None:
-    depth = len(words)
+    depth      = len(words)
     addr_width = ceil_log2(depth)
-
-    # Derive naming from target
     pkg_name   = f"codeword_{target}_pkg"
     type_name  = f"codeword_{target}_rom_t"
     const_name = f"CODEWORD_{target.upper()}_ROM"
@@ -120,28 +199,42 @@ def main() -> int:
     parser.add_argument(
         "--target",
         choices=["encoder", "decoder"],
-        default="decoder",
-        help="Target use: 'encoder' or 'decoder'. Controls package name and output path.",
+        required=True,
+        help="Target use: 'encoder' (239-bit words) or 'decoder' (256-bit words, strict).",
     )
     parser.add_argument(
-        "--width",
-        type=int,
-        default=None,
-        help="Force output word width in bits",
+        "--product",
+        action="store_true",
+        help=(
+            "Enforce product-level line count rules. "
+            "Encoder: line count must be multiple of 239 (zero-padded if not). "
+            "Decoder: line count must be exactly 256 (error if not)."
+        ),
     )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[1]
 
     words, data_kind = parse_codewords(args.input)
-    normalized_words, width = normalize_words(words, args.width, data_kind)
+    normalized       = normalize_words(words, data_kind)
+
+    if args.target == "encoder":
+        validated = validate_encoder(normalized, product=args.product)
+        width     = ENCODER_WIDTH
+    else:
+        validated = validate_decoder(normalized, product=args.product)
+        width     = DECODER_WIDTH
 
     pkg_filename = f"codeword_{args.target}_pkg.vhd"
-    pkg_path = repo_root / "src" / "data" / pkg_filename
+    pkg_path     = repo_root / "src" / "data" / pkg_filename
 
-    write_package(pkg_path, words=normalized_words, width=width, target=args.target)
+    write_package(pkg_path, words=validated, width=width, target=args.target)
 
-    print(f"Wrote {pkg_path}  ({len(normalized_words)} words x {width} bits, target={args.target})")
+    print(
+        f"Wrote {pkg_path}  "
+        f"({len(validated)} words x {width} bits, target={args.target}"
+        f"{', product' if args.product else ''})"
+    )
     return 0
 
 

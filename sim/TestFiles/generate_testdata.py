@@ -18,5 +18,5 @@ def piData():
     
     file.write(endOfLine + bin(first_digits_of_pi)[2:].zfill(239))
 
-piData() 
+randomData() 
 file.close()

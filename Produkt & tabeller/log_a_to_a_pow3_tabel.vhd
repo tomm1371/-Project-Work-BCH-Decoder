@@ -48,7 +48,7 @@ ARCHITECTURE rtl OF log_a_to_a_pow3_tabel IS
     shifted_v := a(6 DOWNTO 0) & '0';
 
     IF a(7) = '1' THEN
-      shifted_v := shifted_v XOR TO_UNSIGNED(16#1D#, 8);
+      shifted_v := shifted_v XOR TO_UNSIGNED(x"1D", 8);
     END IF;
 
     RETURN shifted_v;

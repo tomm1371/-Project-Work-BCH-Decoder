@@ -57,8 +57,8 @@ BEGIN
 				output_reg <= '0';
                 code_valid <= '0';
                 data_reg <= (OTHERS => '0');
-	            parity_reg <= (OTHERS => '0');
-	            even_parity_reg  <= '0';
+				parity_reg <= (OTHERS => '0');
+				even_parity_reg  <= '0';
 			ELSE
 
 				-- Step 4: registered output send with valid pulse

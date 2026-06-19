@@ -74,6 +74,7 @@ ARCHITECTURE rtl OF encoder_product IS
   -- Some versions of VHDL wont allow you to ready OUT ports in internal combinational logic. Therefore, for good practice, we use a signal.
   -- It is 1 when we can accept an input row.
   SIGNAL row_ready_s : STD_LOGIC := '0';
+  SIGNAL matrix_switch_s : STD_LOGIC := '0';  -- pulses high for one cycle during switch
   -- Create a column vector.
   -- After the row encoding is done, we have 239x256 matrix.
   -- matrix_A_s(0),matrix_A_s(1),..., matrix_A_s(238) are the rows
@@ -138,19 +139,19 @@ BEGIN
   -- Ready logic.
   -- a row will only be accepted if row_valid & row_ready_s = 1
   -- row_valid comes from upstream, so we only formulate when this module is ready to receive.
-  row_ready_s <= '1' WHEN (
-    -- Case 1 is if we're feeding rows, but we've not filled out the matrix yet (keep going).
-    (fill_busy_s = '1' AND rows_fed_s < BCH_DATA_BITS)
-    OR
-    -- Case 2 is if we're not filling a matrix, and this matrix is free.
-    (fill_busy_s = '0' AND matrix_ready_s(fill_matrix_s) = '0'
-    AND
-    NOT ((output_busy_s = '1') AND (output_matrix_s = fill_matrix_s))) -- this part of Step 2 checks that the matrix we want to feed is not in column/output mode.
-    )
-    ELSE
-    '0'; -- default to 0.
+  
 
-  row_ready <= row_ready_s; -- Finally we map to the OUT port.
+  -- Case 1 is if we're feeding rows, but we've not filled out the matrix yet (keep going).
+  -- Case 2 is if we're not filling a matrix, and this matrix is free.
+  -- this part of Step 2 checks that the matrix we want to feed is not in column/output mode.
+  row_ready_s <= '0' WHEN matrix_switch_s = '1' ELSE
+              '0' WHEN NOT (((fill_busy_s = '1') AND (rows_fed_s < BCH_DATA_BITS))
+                OR
+              ((fill_busy_s = '0') AND (matrix_ready_s(fill_matrix_s) = '0') 
+                AND (NOT ((output_busy_s = '1') AND (output_matrix_s = fill_matrix_s)))))
+              ELSE '1';
+
+
   ----------------------------------------------------------
   -- Main process.
   ----------------------------------------------------------
@@ -191,7 +192,7 @@ BEGIN
         block_done <= '0';
 
       ELSE
-
+      row_ready <= row_ready_s;
         -- default relevant signals on a new clock
         -- Ensures the "pulse" logic.
         row_encoder_data_valid_s <= '0';
@@ -262,6 +263,7 @@ BEGIN
 
         -- Check if the output side is busy.
         -- We only allow for 1 matrix in each mode at any time.
+        matrix_switch_s <= '0';
         IF output_busy_s = '0' THEN
 
           IF matrix_ready_s(0) = '1' THEN -- is matrix A done with rows?
@@ -269,6 +271,7 @@ BEGIN
             output_busy_s <= '1';
             output_matrix_s <= 0; -- 0 means that matrix A is selected as the output matrix.
             matrix_ready_s(0) <= '0';
+            matrix_switch_s <= '1';
 
             cols_fed_s <= 0;
             cols_collected_s <= 0;

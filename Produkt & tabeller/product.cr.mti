@@ -1,0 +1,16 @@
+{C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/Produkt & tabeller/tb_product_encoder.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/Produkt & tabeller/tb_product_encoder.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity tb_product_encoder
+-- Compiling architecture sim of tb_product_encoder
+-- Loading entity encoder_product
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/Produkt & tabeller/tb_product_encoder.vhd(144): (vcom-1484) Unknown formal identifier "data_valid".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/Produkt & tabeller/tb_product_encoder.vhd(145): (vcom-1484) Unknown formal identifier "data_in".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/Produkt & tabeller/tb_product_encoder.vhd(146): (vcom-1484) Unknown formal identifier "product_valid".
+** Error: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/Produkt & tabeller/tb_product_encoder.vhd(147): (vcom-1484) Unknown formal identifier "product_out".
+** Note: C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/Produkt & tabeller/tb_product_encoder.vhd(234): VHDL Compiler exiting
+
+} {10.0 14.0} {}}

@@ -20,22 +20,23 @@ vlib work
 vmap work work
 
 # Compile design files
-#vcom -2008 $project_root/src/encoder/deprecated/gf_mod_256.vhd
 vcom -2008 $project_root/src/encoder/encoder.vhd
+vcom -2008 $project_root/src/encoder/encoder_product.vhd
+
+
+# Compile testbench
+vcom -2008 $script_dir/encoder_product_tb.vhd
+
+# Start simulation
+vsim work.bch_encoder_tb_256
 
 # hide full names
 quietly WaveActivateNextPane {} 0
 configure wave -namecolwidth 200
 configure wave -signalnamewidth 1
 
-# Compile testbench
-vcom -2008 $script_dir/encoder_tb.vhd
-
-# Start simulation
-vsim work.bch_encoder_tb_256
-
 # Add all signals to the wave window in hex
 add wave -radix hex -recursive *
 
 # Run simulation for a fixed time
-run 5500 ns
+run 55000 ns

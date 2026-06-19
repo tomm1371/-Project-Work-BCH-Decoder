@@ -2,9 +2,9 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 
-ENTITY DaBomb_encoder_product IS
+ENTITY DaBomb_decoder_product IS
   GENERIC (
-    constant rows : NATURAL := 239;
+    constant rows : NATURAL := 256;
     constant columns : NATURAL := 256
   );
   PORT (
@@ -21,25 +21,29 @@ ENTITY DaBomb_encoder_product IS
         codeword_out : OUT STD_LOGIC_VECTOR(columns-1 DOWNTO 0); -- actual 256 bits output codeword.
         codeword_valid : OUT STD_LOGIC -- is 1 when codeword_out contains a valid encoded column codeword.
     );
-END ENTITY DaBomb_encoder_product;
+END ENTITY DaBomb_decoder_product;
 
-architecture encoder_arch OF DaBomb_encoder_product IS
+architecture decoder_arch OF DaBomb_decoder_product IS
     --constant rows : NATURAL := 239;
     --constant columns : NATURAL := 256;
 
-    constant FUNC_CLK_DELAY: NATURAL := 1;
+    Component decoder IS
+        GENERIC (
+            M : INTEGER := 8; -- 2**m = length of codeword
+            T : INTEGER := 2); -- error correction capability
 
-    component encoder IS
-	PORT (
-		clk, rst : IN STD_LOGIC;
-		data_in : IN STD_LOGIC_VECTOR(238 DOWNTO 0); -- 239 bits for M=8, T=2
-		data_valid : IN STD_LOGIC;
-		codeword_out : OUT STD_LOGIC_VECTOR(255 DOWNTO 0); -- 256 bits for M=8
-		codeword_valid : OUT STD_LOGIC
-	);
-    END component;
+        PORT (
+            clk, rst : IN STD_LOGIC;
+            data_in : IN STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0);
+            data_valid : IN STD_LOGIC;
+            
+            code_out : OUT STD_LOGIC_VECTOR(2 ** M - 1 DOWNTO 0); -- corrected codeword
+            code_valid : OUT STD_LOGIC; -- is 1  when a corrected codeword is ready.
+            errors_found : OUT STD_LOGIC_VECTOR(1 DOWNTO 0) 
+        );
+    END Component;
 
-        type main_array_t is array (rows-1 DOWNTO 0) OF STD_LOGIC_VECTOR(columns-1 DOWNTO 0);
+    type main_array_t is array (rows-1 DOWNTO 0) OF STD_LOGIC_VECTOR(columns-1 DOWNTO 0);
     SIGNAL main_array : main_array_t := (OTHERS => (OTHERS => '0'));
 
     SIGNAL DATA_IN_FUNC : STD_LOGIC_VECTOR(rows-1 DOWNTO 0);
@@ -64,13 +68,15 @@ architecture encoder_arch OF DaBomb_encoder_product IS
 
     BEGIN
 
-    FUNC: entity work.encoder
+    FUNC: entity work.decoder
 		PORT MAP(
             clk => clk, rst => reset,
             data_in => DATA_IN_FUNC,
             data_valid => DATA_VALID_FUNC,
-            code_out =>CODE_OUT_FUNC,
-            code_valid => CODE_VALID_FUNC
+            code_out => CODE_OUT_FUNC,
+            code_valid => CODE_VALID_FUNC,
+            errors_found => open
+
 		);
 
 
@@ -176,4 +182,4 @@ architecture encoder_arch OF DaBomb_encoder_product IS
         end if;--main
     end PROCESS;
 
-end architecture encoder_arch;
+end architecture decoder_arch;

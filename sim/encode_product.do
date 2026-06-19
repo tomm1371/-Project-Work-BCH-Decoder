@@ -39,4 +39,4 @@ configure wave -signalnamewidth 1
 add wave -radix hex -recursive *
 
 # Run simulation for a fixed time
-run 55000 ns
+run 30000 ns

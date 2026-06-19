@@ -3,7 +3,7 @@ import pathlib
 
 endOfLine = "\n"
 random.seed = 42
-maxErrors = 3
+maxErrors = 4
 minErrors = 0
 addErrorCount = False
 
@@ -15,11 +15,11 @@ fileErrorPos = open(pathlib.Path("sim","TestFiles","error_pos.txt"), "w")
 print("found files")
 
 def write_it_down(codeword, error_list):
-    fileErrorPos.write(endOfLine)
+    # fileErrorPos.write(endOfLine)
     for e in error_list:
         fileErrorPos.write(bin(e)[2:].zfill(2) + " ")
         codeword = codeword ^ (1<<e)
-    fileW.write(endOfLine+bin(codeword)[2:].zfill(256))
+    fileW.write(bin(codeword)[2:].zfill(256)+endOfLine)
     
 
 def randomErrors():

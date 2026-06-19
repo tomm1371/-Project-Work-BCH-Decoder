@@ -85,7 +85,7 @@ BEGIN
             WAIT FOR CLK_PERIOD * 2.5;
 
             rom_init_complete := true;
-            readline(input_file, line_in); -- ignore the first line (header)
+            --readline(input_file, line_in); -- ignore the first line (header)
             --row_ready <= '1'; -- indicate ready to receive data
             while not endfile(input_file) loop
                 if row_ready = '1' then -- only apply new input when not busy

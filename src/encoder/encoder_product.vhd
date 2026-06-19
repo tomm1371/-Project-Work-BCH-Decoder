@@ -144,13 +144,12 @@ BEGIN
   -- Case 1 is if we're feeding rows, but we've not filled out the matrix yet (keep going).
   -- Case 2 is if we're not filling a matrix, and this matrix is free.
   -- this part of Step 2 checks that the matrix we want to feed is not in column/output mode.
-  row_ready_s <= '0' WHEN matrix_switch_s = '1' ELSE
-              '0' WHEN NOT (((fill_busy_s = '1') AND (rows_fed_s < BCH_DATA_BITS))
+  row_ready_s <= '0' WHEN NOT (((fill_busy_s = '1') AND (rows_fed_s < BCH_DATA_BITS))
                 OR
-              ((fill_busy_s = '0') AND (matrix_ready_s(fill_matrix_s) = '0') 
+                ((fill_busy_s = '0') AND (matrix_ready_s(fill_matrix_s) = '0') 
                 AND (NOT ((output_busy_s = '1') AND (output_matrix_s = fill_matrix_s)))))
-              ELSE '1';
-
+                ELSE '1';
+	row_ready <= row_ready_s;
 
   ----------------------------------------------------------
   -- Main process.
@@ -192,7 +191,7 @@ BEGIN
         block_done <= '0';
 
       ELSE
-      row_ready <= row_ready_s;
+
         -- default relevant signals on a new clock
         -- Ensures the "pulse" logic.
         row_encoder_data_valid_s <= '0';

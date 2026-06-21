@@ -510,7 +510,7 @@ BEGIN
 		-- if it were OR, we would be trying to correct it, when we in reality should just push it further in the pipeline, because the values are invalid.
 		-- XOR handles this, because TRUE XOR TRUE = False, which would send is to the ELSE branch of the statement.
 
-      IF ((error_l1(M) = '1') XOR (error_l1(M - 1 DOWNTO 0) = x"FF")) THEN,,0
+      IF ((error_l1(M) = '1') XOR (error_l1(M - 1 DOWNTO 0) = x"FF")) THEN
         error_location1 <= STD_LOGIC_VECTOR(UNSIGNED(error_l1(M - 1 DOWNTO 0)) + 1);
       ELSE
         error_location1 <= error_l1(M - 1 DOWNTO 0); -- if the 9th bit is not 1, we can just use the lower 8 bits, since we don't have an overflow.

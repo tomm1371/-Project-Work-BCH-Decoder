@@ -19,18 +19,17 @@ from verify_product_encoder_output import verify_product_encoder_output
 
 # Updated global variables
 # the run time calculations have been moved to independent functions.
-BLOCKS = 10
+BLOCKS = 1
 DATA_SEED = 42
 NOISE_SEED = RANDOM_SEED
-DECODER_ITERATIONS = 3
+DECODER_ITERATIONS = 1
 
-ERROR_MODEL = "exact_random" # Mode selection. Which error model to use when adding errors. Options: "random_probability", "exact_random", "burst". See the add_product_errors.py script for details on each model.
+ERROR_MODEL = "burst" # Mode selection. Which error model to use when adding errors. Options: "random_probability", "exact_random", "burst". See the add_product_errors.py script for details on each model.
 # Parameters for the error models.
 ERROR_COUNT = 300
 ERROR_PROBABILITY = 0.01
 BURST_COUNT = 1
-BURST_HEIGHT = 4
-BURST_WIDTH = 8
+BURST_LENGTH = 32
 
 script_folder = pathlib.Path(__file__).resolve().parent
 project_folder = script_folder.parent
@@ -135,8 +134,7 @@ def add_errors_to_blocks(
     error_count=0,
     error_probability=0.0,
     burst_count=0,
-    burst_height=1,
-    burst_width=1,
+    burst_length=1,
     verbose=True, # verbose mode means that the function will print out how many errors were added to each block (mostly for testing and debug. Should be turned off for large runs).
 ):
     random_generator = random.Random(noise_seed)
@@ -156,8 +154,7 @@ def add_errors_to_blocks(
             noisy_block, block_error_count = add_burst_errors(
                 clean_block,
                 burst_count,
-                burst_height,
-                burst_width,
+                burst_length,
                 random_generator,
             )
 
@@ -286,8 +283,7 @@ def run_decoder_test(
     error_count=0,
     error_probability=0.0,
     burst_count=0,
-    burst_height=1,
-    burst_width=1,
+    burst_length=1,
     verbose=True,
 ):
     decoder_run_time_us = (
@@ -302,8 +298,7 @@ def run_decoder_test(
         error_count=error_count,
         error_probability=error_probability,
         burst_count=burst_count,
-        burst_height=burst_height,
-        burst_width=burst_width,
+        burst_length=burst_length,
         verbose=verbose,
     )
 
@@ -351,8 +346,7 @@ def main():
         error_count=ERROR_COUNT,
         error_probability=ERROR_PROBABILITY,
         burst_count=BURST_COUNT,
-        burst_height=BURST_HEIGHT,
-        burst_width=BURST_WIDTH,
+        burst_length=BURST_LENGTH,
     )
 
     if not result["success"]:

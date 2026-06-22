@@ -32,6 +32,46 @@ def flip_bit(codeword, bit_index):
     return codeword[:bit_index] + flipped_bit + codeword[bit_index + 1:]
 
 
+# Create one reproducible ordering of every bit position in a product block.
+# The first E positions in this order define the error pattern with E errors.
+# This is used to find the empirical error threshhold for one fixed seed
+# i.e. the transition between full decoding and failure.
+def create_error_order(seed):
+    maximum_errors = ROWS_PER_BLOCK * COLUMNS_PER_BLOCK
+
+    error_order = list(range(maximum_errors))
+    random_generator = random.Random(seed)
+    random_generator.shuffle(error_order)
+
+    return error_order # It returns a fixed permutation of all 65536 bit positions.
+
+# This function will flip the first error_count positions from the fixed permutation
+# that is calculated from the function create_error_order.
+def add_ordered_errors(product_block, error_order, error_count):
+    maximum_errors = ROWS_PER_BLOCK * COLUMNS_PER_BLOCK
+
+    if len(product_block) != COLUMNS_PER_BLOCK:
+        raise ValueError("A product block must contain exactly 256 codewords.")
+    if len(error_order) != maximum_errors:
+        raise ValueError("The error order must contain exactly 65,536 positions.")
+    if not 0 <= error_count <= maximum_errors:
+        raise ValueError(f"The error count must be between 0 and {maximum_errors}.")
+
+    noisy_block = product_block.copy()
+
+    for flat_position in error_order[:error_count]:
+        row_index = flat_position // COLUMNS_PER_BLOCK
+        column_index = flat_position % COLUMNS_PER_BLOCK
+
+        noisy_block[column_index] = flip_bit(
+            noisy_block[column_index],
+            row_index,
+        )
+
+    return noisy_block, error_count
+
+
+
 # Flip bits in the product block with a certain probability to simulate errors.
 # Each bit is treated independently, and the total number of errors is counted and returned.
 # rng is a random number generator instance.
@@ -57,42 +97,47 @@ def add_random_errors(product_block, error_probability, rng):
     return noisy_block, error_count
 
 
-# Rectangular burst errors.
-# burst_count: number of bursts to introduce.
-# burst_height: number of consecutive rows affected by each burst.
-# burst_width: number of consecutive columns affected by each burst.
-def add_burst_errors(product_block, burst_count, burst_height, burst_width, rng):
+# Sequential burst errors in the serialized product-codeword stream.
+# burst_count: number of non-overlapping bursts to introduce.
+# burst_length: number of consecutive errors in each burst.
+def add_burst_errors(product_block, burst_count, burst_length, rng):
     if len(product_block) != COLUMNS_PER_BLOCK:
         raise ValueError("A product block must contain exactly 256 codewords.")
     if burst_count < 0:
         raise ValueError("The burst count cannot be negative.")
-    if not 1 <= burst_height <= ROWS_PER_BLOCK:
-        raise ValueError("The burst height must be between 1 and 256.")
-    if not 1 <= burst_width <= COLUMNS_PER_BLOCK:
-        raise ValueError("The burst width must be between 1 and 256.")
-
-    error_positions = set() # set() creates an empty set to store UNIQUE error positions as (row_index, column_index) tuples.
-
-    # For each burst, we randomly select a starting position for the burst
-    # within the bounds of the block, ensuring that the entire burst fits within the block dimensions.
-    for _ in range(burst_count):
-        start_row = rng.randrange(ROWS_PER_BLOCK - burst_height + 1)
-        start_column = rng.randrange(COLUMNS_PER_BLOCK - burst_width + 1)
-
-        for row_index in range(start_row, start_row + burst_height):
-            for column_index in range(start_column, start_column + burst_width):
-                error_positions.add((row_index, column_index)) # We add the position of each bit that should be flipped to the error_positions set. Using a set ensures that we don't count the same bit multiple times if bursts overlap.
-
-    noisy_block = product_block.copy() # We create a copy of the original block to modify, preserving the original data.
-
-    # Finally iterate over each error_position and flip the bit at that position.
-    for row_index, column_index in error_positions:
-        noisy_block[column_index] = flip_bit(
-            noisy_block[column_index],
-            row_index
+    total_bits = COLUMNS_PER_BLOCK * CODEWORD_BITS
+    if not 1 <= burst_length <= total_bits:
+        raise ValueError(
+            f"The burst length must be between 1 and {total_bits}."
         )
+    if burst_count * burst_length > total_bits:
+        raise ValueError("The requested bursts do not fit within one product block.")
 
-    return noisy_block, len(error_positions)
+    # Calculate non-overlapping intervals of burst_length bits. 
+    # The transformed start positions makes sure that each burst has a random location but still has the specified number of consecutive errors
+    remaining_gap_bits = total_bits - (burst_count * burst_length)
+    compressed_positions = sorted(
+        rng.sample(
+            range(remaining_gap_bits + burst_count),
+            burst_count,
+        )
+    )
+    burst_starts = [
+        compressed_position + burst_index * (burst_length - 1)
+        for burst_index, compressed_position in enumerate(compressed_positions)
+    ]
+
+    noisy_block = product_block.copy()
+    for start_position in burst_starts:
+        for flat_position in range(start_position, start_position + burst_length):
+            codeword_index = flat_position // CODEWORD_BITS
+            bit_index = flat_position % CODEWORD_BITS
+            noisy_block[codeword_index] = flip_bit(
+                noisy_block[codeword_index],
+                bit_index,
+            )
+
+    return noisy_block, burst_count * burst_length
 
 
 # Add an exact number of random errors across the block

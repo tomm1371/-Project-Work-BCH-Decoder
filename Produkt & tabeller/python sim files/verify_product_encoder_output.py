@@ -1,11 +1,9 @@
 import pathlib
 
+# Return the 16-bit BCH remainder for one 239-bit message string.
+# The 16 trailing zero bits required for systematic encoding are added here.
+# This is different from the other version, which expected the input to already have the 16 zeroes appended.
 def lfsr_remainder(message_bits):
-    """
-    Return the 16-bit BCH remainder for one 239-bit message string.
-    The 16 trailing zero bits required for systematic encoding are added here.
-    This is different from the other version, which expected the input to already have the 16 zeroes appended.
-    """
     genpoly = 0b0110111101100011 # Generator polynomial without the leading 1-bit (same as is done in VHDL, as the first bit is handled by the outgoing_bit logic)
     parity_bits = 16
 

@@ -134,6 +134,9 @@ def write_results_csv(results):
 def plot_post_decode_ber(results):
     figure, axis = plt.subplots(figsize=(9, 5))
     total_bits = BLOCKS_PER_TEST * CODEWORD_BITS * CODEWORD_BITS
+
+    # log(0) is not defined, but since error numbers are integers, we can just define the "perfect correction line"
+    # to be at the point when the amount of errors is below 1, meaning that there are 0 errors.
     plot_floor = 0.5 / total_bits
 
     for iterations in ITERATION_COUNTS:

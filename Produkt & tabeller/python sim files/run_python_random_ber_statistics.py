@@ -176,7 +176,10 @@ def plot_post_decode_ber(results):
     # For this python version, it is realistic to change the amount of trials_per_point
     # therefore the amount of bits should be calculated accordingly.
     total_bits = BLOCKS_PER_TEST * CODEWORD_BITS * CODEWORD_BITS * TRIALS_PER_POINT
-    plot_floor = 0.5 / total_bits
+    
+    # log(0) is not defined, but since error numbers are integers, we can just define the "perfect correction line"
+    # to be at the point when the amount of errors is below 1, meaning that there are 0 errors.
+    plot_floor = 0.5 / total_bits 
 
     for iterations in ITERATION_COUNTS:
         mean_post_decode_ber = []

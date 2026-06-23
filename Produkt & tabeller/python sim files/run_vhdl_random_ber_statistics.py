@@ -90,7 +90,7 @@ def run_experiment():
                     error_probability=error_probability,
                     verbose=False,
                 )
-
+                # One list entrance is a dictionary containing the following:
                 result_row = {
                     "configured_pre_decode_ber": error_probability,
                     "observed_pre_decode_ber": result["inserted_errors"] / total_bits,
@@ -102,7 +102,7 @@ def run_experiment():
                 result_row.update(result)
                 results.append(result_row)
 
-    return results # Returns a list of result dictionaries.
+    return results # Returns a list of all result dictionaries.
 
 
 # As with most of the other tests/statistics, the results are written in CSV format based on the dictionary outputs.

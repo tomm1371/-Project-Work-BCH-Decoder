@@ -1,0 +1,11 @@
+decoder_iterations,error_count,expected_full_correction,full_correction,python_vhdl_identical
+1,249,True,True,True
+1,250,False,False,True
+2,439,True,True,True
+2,440,False,False,True
+3,511,True,True,True
+3,512,False,False,True
+4,585,True,True,True
+4,586,False,False,True
+5,596,True,True,True
+5,597,False,False,True

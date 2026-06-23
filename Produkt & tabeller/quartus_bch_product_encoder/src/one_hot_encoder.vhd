@@ -17,6 +17,7 @@ ENTITY one_hot_encoder IS
 
     -- One-hot error vector.
     -- For M = 8, this becomes STD_LOGIC_VECTOR(254 DOWNTO 0),
+    -- so it has 255 bits.
     --
     -- This corresponds to the 255 BCH bits.
     -- The extended parity bit is handled separately in the decoder.
@@ -27,7 +28,7 @@ END ENTITY one_hot_encoder;
 
 -- Note:
 -- This is not strictly always "one-hot", because the default/no-error state
--- is all zeroes. If binary_in = 255, no output bit matches,
+-- is all zeroes. For example, if binary_in = 255, no output bit matches,
 -- so one_hot_out becomes all zeroes.
 ARCHITECTURE RTL OF one_hot_encoder IS
 BEGIN

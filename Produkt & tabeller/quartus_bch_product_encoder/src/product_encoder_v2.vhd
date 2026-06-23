@@ -108,14 +108,14 @@ BEGIN
 	----------------------------------------------------------
 
 	-- Row encoder mapping.
-  row_bch_encoder_inst : ENTITY work.bch_encoder_256
+  row_bch_encoder_inst : ENTITY work.encoder
     GENERIC MAP (
       M => M,
       T => T
     )
     PORT MAP (
       clk        => clk,
-      reset      => reset,
+      rst        => reset,
       data_valid => row_encoder_data_valid_s,
       data_in    => row_encoder_data_in_s,
       code_valid => row_encoder_code_valid_s,
@@ -123,14 +123,14 @@ BEGIN
     );
 
 	 -- Column encoder mapping.
-  col_bch_encoder_inst : ENTITY work.bch_encoder_256
+  col_bch_encoder_inst : ENTITY work.encoder
     GENERIC MAP (
       M => M,
       T => T
     )
     PORT MAP (
       clk        => clk,
-      reset      => reset,
+      rst        => reset,
       data_valid => col_encoder_data_valid_s,
       data_in    => col_encoder_data_in_s,
       code_valid => col_encoder_code_valid_s,

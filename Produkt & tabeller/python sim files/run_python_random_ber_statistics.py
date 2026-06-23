@@ -79,11 +79,15 @@ def run_experiment():
 
     for error_probability in ERROR_PROBABILITIES:
         for trial_index in range(TRIALS_PER_POINT):
-            noise_seed = BASE_NOISE_SEED + trial_index
+            # Each trial starts from one reproducible seed. 
+            # The random generator keeps running while it adds errors to all blocks, 
+            # so every block gets its own error distribution even though they share one seed.
+            # Resetting the seed for every BER means that a higher p can only add errors. 
+            # The same noisy blocks are then decoded with every iteration count, making the iteration comparison fair.
+            noise_seed = BASE_NOISE_SEED + trial_index # trial_index is added so every extra trial gets a unique seed, and therefore a new error distribution
             random_generator = random.Random(noise_seed)
 
-            # Create the noisy blocks once for this BER and trial.
-            # The same error pattern is then used for every iteration count.
+            # Create the five noisy blocks once for this BER and trial.
             noisy_blocks = []
             total_inserted_errors = 0
 

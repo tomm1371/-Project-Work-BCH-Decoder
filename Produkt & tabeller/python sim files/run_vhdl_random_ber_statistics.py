@@ -68,12 +68,12 @@ def run_experiment():
 
     for error_probability in ERROR_PROBABILITIES:
         for trial_index in range(TRIALS_PER_POINT):
-            # Each BER has five different product blocks and five different error patterns.
-            # For one trial, the same patterns are created for every probability and iteration count.
-            # Therefore, increasing p can only add errors to each block, but not change the overall pattern.
-            # This still is an uncertainty in the model, because a singluar error can be the difference in the iterative behavior of a product decoder
-            # but it still minimises the effect that other parameters have on a simulation, other than iteration count.
-            noise_seed = BASE_NOISE_SEED + trial_index # trial_index is added here, so we can change the amount of trials that should be run for each BER, resulting in unique error seeds for each trial.
+            # Each trial starts from one reproducible seed. 
+            # The error generator then keeps running while it adds errors to all five blocks.
+            # This means that every block gets its own error distribution, even though they all originate from the same seed.
+            # The seed is reset for every BER and iteration count. 
+            # Therefore, a higher p can only add errors to a block, and every iteration count is tested using the exact same five noisy input blocks.
+            noise_seed = BASE_NOISE_SEED + trial_index # trial_index is added so every extra trial gets a unique seed, and therefore a new error distribution
 
             for iterations in ITERATION_COUNTS:
                 print(

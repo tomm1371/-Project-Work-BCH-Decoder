@@ -36,7 +36,7 @@ vmap work work
 # [file join ...] builds the full path from source_dir and the filename
 # even when the project path contains spaces.
 vcom -2008 [file join $source_dir gf_mod_256.vhd]
-vcom -2008 [file join $source_dir bch_encoder_256.vhd]
+vcom -2008 [file join $source_dir encoder.vhd]
 
 # Compile the product encoder.
 vcom -2008 [file join $source_dir product_encoder_v2.vhd]

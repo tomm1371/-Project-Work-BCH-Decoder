@@ -1,0 +1,24 @@
+Quartus Prime Archive log --	C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/encoder.qarlog
+
+Archive:	C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/encoder.qar
+Date:		Wed Jun 24 15:58:09 2026
+Quartus Prime		20.1.1 Build 720 11/11/2020 SJ Lite Edition
+
+	=========== Files Selected: ===========
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/bch_de10lite_decoder.out.sdc
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/bch_de10lite_decoder.qsf
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/bch_de10lite_decoder.sdc
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/bch_de10lite_decoder_product.qsf
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/bch_de10lite_encoder.qsf
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/bch_de10lite_encoder_product.qsf
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/quartus/bch_decoder.qpf
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/data/codeword_encoder_pkg.vhd
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/data/codeword_encoder_reader.vhd
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/encoder/deprecated/gf_mod_256.vhd
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/encoder/encoder.vhd
+C:/Users/Tommy/Documents/-Project-Work-BCH-Decoder/src/top/top_de10lite_encoder.vhd
+c:/intelfpga_lite/20.1/quartus/bin64/assignment_defaults.qdf
+	======= Total: 13 files to archive =======
+
+	================ Status: ===============
+All files archived successfully.

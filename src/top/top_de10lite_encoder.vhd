@@ -101,22 +101,22 @@ BEGIN
     PROCESS (MAX10_CLK1_50, KEY(0))
     BEGIN
         IF KEY(0) = '0' THEN
-            HEX0 <= (OTHERS => '1');
-            HEX1 <= (OTHERS => '1');
-            HEX2 <= (OTHERS => '1');
-            HEX3 <= (OTHERS => '1');
-            HEX4 <= (OTHERS => '1');
-            HEX5 <= (OTHERS => '1');
+            HEX0 <= NOT "00111111"; -- zero
+            HEX1 <= NOT "00111111";
+            HEX2 <= NOT "00111111";
+            HEX3 <= NOT "00111111";
+            HEX4 <= NOT "00111111";
+            HEX5 <= NOT "00111111";
             total_encoded <= (OTHERS => '0');
         ELSIF (rising_edge(MAX10_CLK1_50)) THEN
 
             IF code_valid = '1' THEN
                 total_encoded <= STD_LOGIC_VECTOR(unsigned(total_encoded) + 1);
+                HEX0 <= hex_to_7seg(code_out(3 DOWNTO 0));
+                HEX1 <= hex_to_7seg(code_out(7 DOWNTO 4));
+                HEX2 <= hex_to_7seg(code_out(11 DOWNTO 8));
+                HEX3 <= hex_to_7seg(code_out(15 DOWNTO 12));
             END IF;
-            HEX0 <= hex_to_7seg(code_out(3 DOWNTO 0));
-            HEX1 <= hex_to_7seg(code_out(7 DOWNTO 4));
-            HEX2 <= hex_to_7seg(code_out(11 DOWNTO 8));
-            HEX3 <= hex_to_7seg(code_out(15 DOWNTO 12));
             HEX4 <= hex_to_7seg(total_encoded(3 DOWNTO 0));
             HEX5 <= hex_to_7seg(total_encoded(7 DOWNTO 4));
         END IF;
